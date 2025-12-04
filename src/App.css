@@ -1,0 +1,212 @@
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #fff;
+  border: 1px solid #ccc; /* Border for frameless window */
+  box-sizing: border-box;
+}
+
+.title-bar {
+  height: 30px;
+  background-color: #f3f3f3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+  -webkit-app-region: drag;
+}
+
+/* ... */
+
+.window-title {
+  font-size: 0.9em;
+  color: #666;
+  flex: 1;
+  text-align: center;
+}
+
+.window-controls {
+  display: flex;
+  -webkit-app-region: no-drag;
+}
+
+.menu-bar {
+  display: flex;
+  align-items: center;
+  padding-left: 5px;
+  -webkit-app-region: no-drag;
+  height: 100%;
+}
+
+.menu-wrapper {
+  position: relative;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.menu-item {
+  padding: 0 10px;
+  cursor: pointer;
+  font-size: 0.9em;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.menu-item:hover, .menu-item.active {
+  background-color: #e0e0e0;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: white;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  min-width: 200px;
+  z-index: 1000;
+  padding: 5px 0;
+}
+
+.dropdown-item {
+  padding: 5px 15px;
+  cursor: pointer;
+  font-size: 0.9em;
+  display: flex;
+  justify-content: space-between;
+  color: #333;
+}
+
+.dropdown-item:hover {
+  background-color: #f0f0f0;
+}
+
+.dropdown-item.disabled {
+    color: #aaa;
+    cursor: default;
+}
+
+.dropdown-item.disabled:hover {
+    background-color: transparent;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background-color: #eee;
+    margin: 5px 0;
+}
+
+.shortcut {
+    color: #888;
+    font-size: 0.8em;
+}
+
+.window-title {
+  font-size: 0.9em;
+  color: #666;
+  flex: 1;
+  text-align: center;
+}
+
+.window-controls {
+  display: flex;
+  -webkit-app-region: no-drag;
+}
+
+.window-control {
+  width: 46px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-family: "Segoe MDL2 Assets", sans-serif;
+  font-size: 10px;
+}
+
+.window-control:hover {
+  background-color: #e0e0e0;
+}
+
+.window-control.close:hover {
+  background-color: #e81123;
+  color: white;
+}
+
+.main-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  position: relative; /* For absolute positioning inside if needed */
+}
+
+.editor-container {
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+}
+
+#print-container {
+  display: none;
+}
+
+@media print {
+  .app-container > *:not(#print-container) {
+    display: none !important;
+  }
+  
+  .app-container {
+      height: auto;
+      border: none;
+  }
+
+  #print-container {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: auto;
+    background: white;
+    padding: 20px;
+    font-family: 'Segoe UI', sans-serif;
+    color: black;
+  }
+  
+  #print-container img {
+      max-width: 100%;
+  }
+}
+
+/* Search panel styling */
+.cm-search {
+  padding: 8px !important;
+}
+
+.cm-search input,
+.cm-search button,
+.cm-search label {
+  margin: 4px !important;
+}
+
+.cm-textfield {
+  padding: 4px 8px !important;
+}
+
+.cm-button {
+  padding: 4px 12px !important;
+  margin: 2px 4px !important;
+}
