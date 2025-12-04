@@ -1,13 +1,12 @@
-import { RangeSetBuilder } from '@codemirror/state';
+import { RangeSetBuilder, StateField, EditorState } from '@codemirror/state';
 import {
   Decoration,
   DecorationSet,
   EditorView,
-  ViewPlugin,
-  ViewUpdate,
-  WidgetType,
+  WidgetType
 } from '@codemirror/view';
 import { syntaxTree } from '@codemirror/language';
+import { TableWidget, TableData } from './table-widget';
 
 class BulletWidget extends WidgetType {
   toDOM() {
@@ -38,17 +37,11 @@ class LinkWidget extends WidgetType {
   ignoreEvent() { return false; }
 }
 
-
-// Table rendering disabled - causes performance issues
-
-function computeHybridDecorations(view: EditorView): DecorationSet {
+function computeHybridDecorations(state: EditorState): DecorationSet {
   const builder = new RangeSetBuilder<Decoration>();
-  const { state } = view;
   const selection = state.selection.main;
 
   syntaxTree(state).iterate({
-    from: view.viewport.from,
-    to: view.viewport.to,
     enter: (node) => {
       if (node.name === 'StrongEmphasis' || node.name === 'Emphasis') {
         if (selection.from >= node.from && selection.to <= node.to) return;
@@ -73,7 +66,7 @@ function computeHybridDecorations(view: EditorView): DecorationSet {
         } while (c.nextSibling());
       }
       else if (node.name === 'ListMark') {
-        const text = view.state.sliceDoc(node.from, node.to);
+        const text = state.sliceDoc(node.from, node.to);
         if (['-', '*', '+'].includes(text)) {
           builder.add(node.from, node.to, Decoration.replace({
             widget: new BulletWidget()
@@ -83,27 +76,100 @@ function computeHybridDecorations(view: EditorView): DecorationSet {
       else if (node.name === 'Link') {
         if (selection.from >= node.from && selection.to <= node.to) return;
 
-        const text = view.state.sliceDoc(node.from, node.to);
+        const text = state.sliceDoc(node.from, node.to);
         const match = text.match(/^\[(.*?)\]\((.*?)\)/);
         if (match) {
           builder.add(node.from, node.to, Decoration.replace({
             widget: new LinkWidget(match[1], match[2])
           }));
+          return false;
         }
       }
-      // Table rendering disabled - causes performance issues
-      // else if (node.name === 'Table') {
-      //   // Only render when not focused
-      //   if (selection.from >= node.from && selection.to <= node.to) return;
+      else if (node.name === 'Table') {
+        // Only render when not focused
+        if (selection.from >= node.from && selection.to <= node.to) return;
 
-      //   const text = view.state.sliceDoc(node.from, node.to);
-      //   builder.add(node.from, node.to, Decoration.replace({
-      //     widget: new TableWidget(text)
-      //   }));
-      // }
+        // Safety check for empty range
+        if (node.to <= node.from) return;
+
+        const tableData: TableData = {
+          headers: [],
+          rows: [],
+          alignments: []
+        };
+
+        let cursor = node.node.cursor();
+        if (cursor.firstChild()) {
+          // Process TableHeader
+          if (cursor.name === 'TableHeader') {
+            let headerCursor = cursor.node.cursor();
+            if (headerCursor.firstChild()) {
+              do {
+                if (headerCursor.name === 'TableCell') {
+                  tableData.headers.push(state.sliceDoc(headerCursor.from, headerCursor.to));
+                }
+              } while (headerCursor.nextSibling());
+            }
+          }
+
+          // Process Delimiter Row to determine alignment
+          let child = node.node.firstChild;
+          let headerNode = null;
+          let firstRowNode = null;
+
+          while (child) {
+            if (child.name === 'TableHeader') headerNode = child;
+            if (child.name === 'TableRow' && !firstRowNode) firstRowNode = child;
+            child = child.nextSibling;
+          }
+
+          if (headerNode) {
+            const headerEndLine = state.doc.lineAt(headerNode.to);
+            if (headerEndLine.number < state.doc.lines) {
+              const delimiterLine = state.doc.line(headerEndLine.number + 1);
+              const delimiterRowText = delimiterLine.text;
+
+              const parts = delimiterRowText.split('|').filter(p => p.trim() !== '');
+              tableData.alignments = parts.map(part => {
+                const trimmed = part.trim();
+                if (trimmed.startsWith(':') && trimmed.endsWith(':')) return 'center';
+                if (trimmed.endsWith(':')) return 'right';
+                if (trimmed.startsWith(':')) return 'left';
+                return null;
+              });
+            }
+          }
+
+          // Process TableRows
+          child = node.node.firstChild;
+          while (child) {
+            if (child.name === 'TableRow') {
+              const row: string[] = [];
+              let cellCursor = child.cursor();
+              if (cellCursor.firstChild()) {
+                do {
+                  if (cellCursor.name === 'TableCell') {
+                    row.push(state.sliceDoc(cellCursor.from, cellCursor.to));
+                  }
+                } while (cellCursor.nextSibling());
+              }
+              tableData.rows.push(row);
+            }
+            child = child.nextSibling;
+          }
+        }
+
+        try {
+          builder.add(node.from, node.to, Decoration.replace({
+            widget: new TableWidget(tableData)
+          }));
+        } catch (e) {
+          console.error('Failed to add table decoration:', e);
+        }
+        return false;
+      }
       else if (node.name === 'InlineCode') {
-        // Check if cursor is inside or touching the inline code
-        if (state.selection.ranges.some(r => r.from >= node.from && r.to <= node.to)) return;
+        if (selection.from >= node.from && selection.to <= node.to) return;
 
         let c = node.node.cursor();
         c.firstChild();
@@ -114,16 +180,14 @@ function computeHybridDecorations(view: EditorView): DecorationSet {
         } while (c.nextSibling());
       }
       else if (node.name === 'FencedCode') {
-        const startLine = view.state.doc.lineAt(node.from);
-        const endLine = view.state.doc.lineAt(node.to);
+        const startLine = state.doc.lineAt(node.from);
+        const endLine = state.doc.lineAt(node.to);
 
-        // Check if any cursor is inside the code block
-        const isFocused = state.selection.ranges.some(r => r.from >= node.from && r.to <= node.to);
+        const isFocused = selection.from >= node.from && selection.to <= node.to;
 
         if (isFocused) {
-          // Show everything normally
           for (let i = startLine.number; i <= endLine.number; i++) {
-            const line = view.state.doc.line(i);
+            const line = state.doc.line(i);
             let className = 'cm-codeblock-line';
             if (i === startLine.number) className += ' cm-codeblock-start';
             if (i === endLine.number) className += ' cm-codeblock-end';
@@ -133,21 +197,15 @@ function computeHybridDecorations(view: EditorView): DecorationSet {
             }));
           }
         } else {
-          // Hide delimiters
           for (let i = startLine.number; i <= endLine.number; i++) {
-            const line = view.state.doc.line(i);
+            const line = state.doc.line(i);
 
             if (i === startLine.number || i === endLine.number) {
-              // Hide the first and last lines (delimiters)
               builder.add(line.from, line.from, Decoration.line({
                 attributes: { style: 'display: none' }
               }));
             } else {
-              // Show content lines
               let className = 'cm-codeblock-line';
-              // Adjust rounded corners to the new visible first/last lines
-              // The new first line is startLine.number + 1
-              // The new last line is endLine.number - 1
               if (i === startLine.number + 1) className += ' cm-codeblock-start';
               if (i === endLine.number - 1) className += ' cm-codeblock-end';
 
@@ -164,19 +222,15 @@ function computeHybridDecorations(view: EditorView): DecorationSet {
   return builder.finish();
 }
 
-export const hybridView = ViewPlugin.fromClass(
-  class {
-    decorations: DecorationSet;
-    constructor(view: EditorView) {
-      this.decorations = computeHybridDecorations(view);
-    }
-    update(update: ViewUpdate) {
-      if (update.docChanged || update.viewportChanged || update.selectionSet) {
-        this.decorations = computeHybridDecorations(update.view);
-      }
-    }
+export const hybridView = StateField.define<DecorationSet>({
+  create(state) {
+    return computeHybridDecorations(state);
   },
-  {
-    decorations: (v) => v.decorations,
-  }
-);
+  update(decorations, tr) {
+    if (tr.docChanged || tr.selection) {
+      return computeHybridDecorations(tr.state);
+    }
+    return decorations;
+  },
+  provide: field => EditorView.decorations.from(field)
+});
