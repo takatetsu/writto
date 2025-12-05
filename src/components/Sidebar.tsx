@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { readDirectory, FileEntry, createFolder, createFile, renameFileOrFolder, deleteFileOrFolder, copyFileOrFolder } from '../lib/fs';
+import { FolderOpenIcon, FolderIcon, FileIcon, ArrowUpIcon, EditIcon, CopyIcon, TrashIcon } from './Icons';
 
 interface SidebarProps {
     onFileSelect: (path: string) => void;
@@ -188,7 +189,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onFileSelect, doc, onNavigate, active
     }, [doc]);
 
     return (
-        <div ref={sidebarRef} style={{ width: `${width}px`, minWidth: '150px', backgroundColor: '#f3f3f3', borderRight: '1px solid #ddd', height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+        <div ref={sidebarRef} style={{ width: `${width}px`, minWidth: '150px', backgroundColor: 'var(--sidebar-bg)', borderRight: '1px solid var(--border-color)', height: '100%', display: 'flex', flexDirection: 'column', position: 'relative', color: 'var(--sidebar-text)' }}>
             <div
                 style={{
                     width: '5px',
@@ -201,15 +202,15 @@ const Sidebar: React.FC<SidebarProps> = ({ onFileSelect, doc, onNavigate, active
                 }}
                 onMouseDown={startResizing}
             />
-            <div style={{ display: 'flex', borderBottom: '1px solid #ddd' }}>
+            <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)' }}>
                 <div
-                    style={{ flex: 1, padding: '10px', textAlign: 'center', cursor: 'pointer', backgroundColor: activeTab === 'files' ? '#e0e0e0' : 'transparent', fontWeight: activeTab === 'files' ? 'bold' : 'normal' }}
+                    style={{ flex: 1, padding: '10px', textAlign: 'center', cursor: 'pointer', backgroundColor: activeTab === 'files' ? 'var(--hover-bg)' : 'transparent', fontWeight: activeTab === 'files' ? 'bold' : 'normal' }}
                     onClick={() => setActiveTab('files')}
                 >
                     ファイル
                 </div>
                 <div
-                    style={{ flex: 1, padding: '10px', textAlign: 'center', cursor: 'pointer', backgroundColor: activeTab === 'outline' ? '#e0e0e0' : 'transparent', fontWeight: activeTab === 'outline' ? 'bold' : 'normal' }}
+                    style={{ flex: 1, padding: '10px', textAlign: 'center', cursor: 'pointer', backgroundColor: activeTab === 'outline' ? 'var(--hover-bg)' : 'transparent', fontWeight: activeTab === 'outline' ? 'bold' : 'normal' }}
                     onClick={() => setActiveTab('outline')}
                 >
                     アウトライン
@@ -243,14 +244,14 @@ const Sidebar: React.FC<SidebarProps> = ({ onFileSelect, doc, onNavigate, active
                                     padding: '5px 10px',
                                     fontSize: '0.85em',
                                     fontWeight: 'bold',
-                                    color: '#555',
-                                    borderBottom: '1px solid #eee',
+                                    color: 'var(--text-secondary)',
+                                    borderBottom: '1px solid var(--border-light)',
                                     marginBottom: '5px',
                                     whiteSpace: 'nowrap',
                                     overflow: 'hidden',
                                     textOverflow: 'ellipsis'
                                 }} title={currentPath}>
-                                    📂 {currentPath.split(/[\\/]/).pop()}
+                                    <FolderOpenIcon /> {currentPath.split(/[\\/]/).pop()}
                                 </div>
                                 <div
                                     style={{
@@ -259,12 +260,12 @@ const Sidebar: React.FC<SidebarProps> = ({ onFileSelect, doc, onNavigate, active
                                         display: 'flex',
                                         alignItems: 'center',
                                         fontSize: '0.9em',
-                                        color: '#666',
+                                        color: 'var(--text-muted)',
                                         fontStyle: 'italic'
                                     }}
                                     onClick={handleUpDir}
                                 >
-                                    <span style={{ marginRight: '5px' }}>⬆️</span> ..
+                                    <ArrowUpIcon /> ..
                                 </div>
                                 {files.map(file => (
                                     <div
@@ -275,17 +276,17 @@ const Sidebar: React.FC<SidebarProps> = ({ onFileSelect, doc, onNavigate, active
                                             display: 'flex',
                                             alignItems: 'center',
                                             fontSize: '0.9em',
-                                            color: '#333',
+                                            color: 'var(--sidebar-text)',
                                             whiteSpace: 'nowrap',
                                             overflow: 'hidden',
                                             textOverflow: 'ellipsis',
-                                            backgroundColor: currentFilePath === file.path ? '#e6f7ff' : 'transparent'
+                                            backgroundColor: currentFilePath === file.path ? 'var(--sidebar-highlight)' : 'transparent'
                                         }}
                                         onClick={() => file.isDirectory ? handleDirClick(file.path) : onFileSelect(file.path)}
                                         onContextMenu={(e) => handleContextMenu(e, file.path, file.name, file.isDirectory)}
                                         title={file.name}
                                     >
-                                        <span style={{ marginRight: '5px' }}>{file.isDirectory ? '📁' : '📄'}</span>
+                                        {file.isDirectory ? <FolderIcon /> : <FileIcon />}
                                         {file.name}
                                     </div>
                                 ))}
@@ -308,7 +309,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onFileSelect, doc, onNavigate, active
                                     paddingBottom: '5px',
                                     cursor: 'pointer',
                                     fontSize: '0.9em',
-                                    color: '#333',
+                                    color: 'var(--sidebar-text)',
                                     whiteSpace: 'nowrap',
                                     overflow: 'hidden',
                                     textOverflow: 'ellipsis'
@@ -329,10 +330,10 @@ const Sidebar: React.FC<SidebarProps> = ({ onFileSelect, doc, onNavigate, active
                         position: 'fixed',
                         left: contextMenu.x,
                         top: contextMenu.y,
-                        backgroundColor: 'white',
-                        border: '1px solid #ccc',
+                        backgroundColor: 'var(--menu-bg)',
+                        border: '1px solid var(--border-color)',
                         borderRadius: '4px',
-                        boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
+                        boxShadow: '0 2px 10px var(--shadow-color)',
                         zIndex: 10000,
                         minWidth: '180px',
                         padding: '4px 0'
@@ -344,55 +345,55 @@ const Sidebar: React.FC<SidebarProps> = ({ onFileSelect, doc, onNavigate, active
                             padding: '8px 16px',
                             cursor: 'pointer',
                             fontSize: '0.9em',
-                            color: '#333'
+                            color: 'var(--text-primary)'
                         }}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f0f0f0'}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--hover-bg)'}
                         onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                         onClick={handleCreateFolder}
                     >
-                        📁 フォルダ新規作成
+                        <FolderIcon /> フォルダ新規作成
                     </div>
                     <div
                         style={{
                             padding: '8px 16px',
                             cursor: 'pointer',
                             fontSize: '0.9em',
-                            color: '#333'
+                            color: 'var(--text-primary)'
                         }}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f0f0f0'}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--hover-bg)'}
                         onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                         onClick={handleCreateFile}
                     >
-                        📄 ファイル新規作成
+                        <FileIcon /> ファイル新規作成
                     </div>
-                    <div style={{ height: '1px', backgroundColor: '#e0e0e0', margin: '4px 0' }} />
+                    <div style={{ height: '1px', backgroundColor: 'var(--border-light)', margin: '4px 0' }} />
                     <div
                         style={{
                             padding: '8px 16px',
                             cursor: 'pointer',
                             fontSize: '0.9em',
-                            color: '#333'
+                            color: 'var(--text-primary)'
                         }}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f0f0f0'}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--hover-bg)'}
                         onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                         onClick={handleRename}
                     >
-                        ✏️ 名称変更
+                        <EditIcon /> 名称変更
                     </div>
                     <div
                         style={{
                             padding: '8px 16px',
                             cursor: 'pointer',
                             fontSize: '0.9em',
-                            color: '#333'
+                            color: 'var(--text-primary)'
                         }}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f0f0f0'}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--hover-bg)'}
                         onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                         onClick={handleCopy}
                     >
-                        📋 複製
+                        <CopyIcon /> 複製
                     </div>
-                    <div style={{ height: '1px', backgroundColor: '#e0e0e0', margin: '4px 0' }} />
+                    <div style={{ height: '1px', backgroundColor: 'var(--border-light)', margin: '4px 0' }} />
                     <div
                         style={{
                             padding: '8px 16px',
@@ -404,7 +405,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onFileSelect, doc, onNavigate, active
                         onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                         onClick={handleDelete}
                     >
-                        🗑️ 削除
+                        <TrashIcon /> 削除
                     </div>
                 </div>
             )}

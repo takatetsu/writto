@@ -39,7 +39,17 @@ export async function saveFile(path: string, content: string): Promise<boolean> 
 
 export async function saveFileAs(content: string): Promise<{ path: string } | null> {
   try {
+    // Extract first line for default filename
+    const firstLine = content.split('\n')[0].trim();
+    // Remove markdown heading symbols and limit length
+    const cleanedFirstLine = firstLine.replace(/^#+\s*/, '').substring(0, 50);
+    // Create a safe filename (remove invalid characters)
+    const safeFilename = cleanedFirstLine
+      .replace(/[<>:"/\\|?*]/g, '')
+      .trim() || 'untitled';
+
     const path = await save({
+      defaultPath: safeFilename + '.md',
       filters: [{
         name: 'Markdown',
         extensions: ['md', 'markdown']

@@ -15,10 +15,12 @@ interface MenuBarProps {
     onToggleWordWrap: () => void;
     showSidebar: boolean;
     onToggleSidebar: () => void;
+    darkMode: boolean;
+    onToggleDarkMode: () => void;
 }
 
 const MenuBar: React.FC<MenuBarProps> = ({
-    onNew, onOpen, onSave, onSaveAs, onExportHtml, onPrint, onSettings, onFind, showLineNumbers, onToggleLineNumbers, wordWrap, onToggleWordWrap, showSidebar, onToggleSidebar
+    onNew, onOpen, onSave, onSaveAs, onExportHtml, onPrint, onSettings, onFind, showLineNumbers, onToggleLineNumbers, wordWrap, onToggleWordWrap, showSidebar, onToggleSidebar, darkMode, onToggleDarkMode
 }) => {
     const [activeMenu, setActiveMenu] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
@@ -93,6 +95,10 @@ const MenuBar: React.FC<MenuBarProps> = ({
                         </div>
                         <div className="dropdown-item" onClick={() => handleItemClick(onToggleSidebar)}>
                             {showSidebar ? '✓ ' : '　'}サイドバー表示
+                        </div>
+                        <div className="dropdown-divider"></div>
+                        <div className="dropdown-item" onClick={() => handleItemClick(onToggleDarkMode)}>
+                            {darkMode ? '✓ ' : '　'}ダークモード
                         </div>
                     </div>
                 )}

@@ -8,7 +8,7 @@ import { languages } from "@codemirror/language-data";
 import { openSearchPanel, searchKeymap, highlightSelectionMatches } from "@codemirror/search";
 import { foldGutter, indentOnInput, syntaxHighlighting, defaultHighlightStyle, bracketMatching, foldKeymap } from "@codemirror/language";
 import { closeBrackets, closeBracketsKeymap, autocompletion, completionKeymap } from "@codemirror/autocomplete";
-import { hybridView } from '../editor/hybrid-view';
+import { hybridView, baseDirFacet } from '../editor/hybrid-view';
 import { themeExtensions } from '../editor/theme';
 import { checkboxPlugin } from '../editor/checkbox-plugin';
 
@@ -23,14 +23,16 @@ interface EditorProps {
   settings?: { fontSize: number; fontFamily: string };
   showLineNumbers?: boolean;
   wordWrap?: boolean;
+  activeFileDir?: string;
 }
 
-const Editor = forwardRef<EditorHandle, EditorProps>(({ initialDoc = "", onChange, settings, showLineNumbers = true, wordWrap = false }, ref) => {
+const Editor = forwardRef<EditorHandle, EditorProps>(({ initialDoc = "", onChange, settings, showLineNumbers = true, wordWrap = false, activeFileDir }, ref) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const themeCompartment = useRef(new Compartment());
   const lineNumberCompartment = useRef(new Compartment());
   const wordWrapCompartment = useRef(new Compartment());
+  const baseDirCompartment = useRef(new Compartment());
 
   useImperativeHandle(ref, () => ({
     scrollToLine: (line: number) => {
@@ -130,6 +132,7 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ initialDoc = "", onChang
             fontFamily: `${settings?.fontFamily || 'Consolas, monospace'} !important`
           }
         })),
+        baseDirCompartment.current.of(baseDirFacet.of(activeFileDir || '')),
         hybridView,
       ],
     });
@@ -195,6 +198,15 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ initialDoc = "", onChang
       });
     }
   }, [wordWrap]);
+
+  // Update base dir
+  useEffect(() => {
+    if (viewRef.current) {
+      viewRef.current.dispatch({
+        effects: baseDirCompartment.current.reconfigure(baseDirFacet.of(activeFileDir || ''))
+      });
+    }
+  }, [activeFileDir]);
 
   // Update doc if it changes externally (e.g. file open)
   useEffect(() => {

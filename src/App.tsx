@@ -11,7 +11,7 @@ import './App.css';
 import MenuBar from './components/MenuBar';
 
 function App() {
-  const [doc, setDoc] = useState<string>('# Welcome to Markdown Editor\\n\\nStart typing...');
+  const [doc, setDoc] = useState<string>('');
   const [filePath, setFilePath] = useState<string | null>(null);
   const [isDirty, setIsDirty] = useState(false);
   const [printContent, setPrintContent] = useState<string>('');
@@ -25,6 +25,10 @@ function App() {
   const [showLineNumbers, setShowLineNumbers] = useState(true);
   const [wordWrap, setWordWrap] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('darkMode');
+    return saved === 'true';
+  });
   const editorRef = useRef<EditorHandle>(null);
   const isLoading = useRef(false);
 
@@ -33,7 +37,7 @@ function App() {
   // Helper function to get directory from file path
   const getDirectoryFromPath = (path: string | null): string | undefined => {
     if (!path) return undefined;
-    const separator = path.includes('\\\\') ? '\\\\' : '/';
+    const separator = path.includes('\\') ? '\\' : '/';
     const lastSeparatorIndex = path.lastIndexOf(separator);
     if (lastSeparatorIndex === -1) return undefined;
     return path.substring(0, lastSeparatorIndex);
@@ -76,6 +80,14 @@ function App() {
 
   const handleToggleSidebar = () => {
     setShowSidebar(prev => !prev);
+  };
+
+  const handleToggleDarkMode = () => {
+    setDarkMode(prev => {
+      const newValue = !prev;
+      localStorage.setItem('darkMode', String(newValue));
+      return newValue;
+    });
   };
 
   const handleNew = async () => {
@@ -259,7 +271,7 @@ function App() {
   }, [doc, filePath, isDirty, showLineNumbers, wordWrap]);
 
   return (
-    <div className="app-container">
+    <div className={`app-container ${darkMode ? 'dark-mode' : ''}`}>
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
@@ -283,6 +295,8 @@ function App() {
           onToggleWordWrap={handleToggleWordWrap}
           showSidebar={showSidebar}
           onToggleSidebar={handleToggleSidebar}
+          darkMode={darkMode}
+          onToggleDarkMode={handleToggleDarkMode}
         />
         <div className="window-title">
           {filePath ? filePath : 'Untitled'} {isDirty ? '*' : ''} - Writto
@@ -311,6 +325,7 @@ function App() {
             settings={settings}
             showLineNumbers={showLineNumbers}
             wordWrap={wordWrap}
+            activeFileDir={activeFileDir || initialFolder}
           />
         </div>
       </div>

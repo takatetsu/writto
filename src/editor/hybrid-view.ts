@@ -1,4 +1,4 @@
-import { RangeSetBuilder, StateField, EditorState } from '@codemirror/state';
+import { RangeSet, StateField, EditorState, Facet, Range } from '@codemirror/state';
 import {
   Decoration,
   DecorationSet,
@@ -6,7 +6,28 @@ import {
   WidgetType
 } from '@codemirror/view';
 import { syntaxTree } from '@codemirror/language';
+import { readFile } from '@tauri-apps/plugin-fs';
 import { TableWidget, TableData } from './table-widget';
+
+export const baseDirFacet = Facet.define<string, string>({
+  combine: values => values[0] || ''
+});
+
+// Helper function to get MIME type from file extension
+function getMimeType(path: string): string {
+  const ext = path.toLowerCase().split('.').pop() || '';
+  const mimeTypes: Record<string, string> = {
+    'jpg': 'image/jpeg',
+    'jpeg': 'image/jpeg',
+    'png': 'image/png',
+    'gif': 'image/gif',
+    'webp': 'image/webp',
+    'svg': 'image/svg+xml',
+    'bmp': 'image/bmp',
+    'ico': 'image/x-icon',
+  };
+  return mimeTypes[ext] || 'image/jpeg';
+}
 
 class BulletWidget extends WidgetType {
   toDOM() {
@@ -37,9 +58,109 @@ class LinkWidget extends WidgetType {
   ignoreEvent() { return false; }
 }
 
+class BlockquoteWidget extends WidgetType {
+  toDOM() {
+    const span = document.createElement('span');
+    span.style.borderLeft = '4px solid var(--blockquote-border, #d0d7de)';
+    span.style.marginRight = '10px';
+    span.style.display = 'inline-block';
+    span.style.height = '1.6em';
+    span.style.verticalAlign = 'text-bottom';
+    return span;
+  }
+  ignoreEvent() { return false; }
+}
+
+class ImageWidget extends WidgetType {
+  constructor(
+    readonly url: string,
+    readonly alt: string,
+    readonly title: string | null,
+    readonly baseDir: string
+  ) {
+    super();
+  }
+
+  eq(other: ImageWidget) {
+    return other.url === this.url &&
+      other.alt === this.alt &&
+      other.title === this.title &&
+      other.baseDir === this.baseDir;
+  }
+
+  toDOM() {
+    const img = document.createElement('img');
+    let src = this.url;
+
+    let width = '';
+    let height = '';
+
+    if (this.title) {
+      const sizeMatch = this.title.match(/^=(\d+)(?:x(\d+))?$/);
+      if (sizeMatch) {
+        width = sizeMatch[1];
+        if (sizeMatch[2]) height = sizeMatch[2];
+      }
+    }
+
+    const urlSizeMatch = this.url.match(/\s=(\d+)(?:x(\d+))?$/);
+    if (urlSizeMatch) {
+      src = this.url.substring(0, urlSizeMatch.index);
+      width = urlSizeMatch[1];
+      if (urlSizeMatch[2]) height = urlSizeMatch[2];
+    }
+
+    if (src.startsWith('http://') || src.startsWith('https://') || src.startsWith('data:')) {
+      img.src = src;
+    } else {
+      let absolutePath = src;
+      const isAbsolute = src.startsWith('/') || src.match(/^[a-zA-Z]:/);
+
+      if (!isAbsolute && this.baseDir) {
+        const separator = this.baseDir.includes('\\') ? '\\' : '/';
+        if (src.startsWith('./')) {
+          absolutePath = `${this.baseDir}${separator}${src.substring(2)}`;
+        } else {
+          absolutePath = `${this.baseDir}${separator}${src}`;
+        }
+      }
+
+      img.alt = this.alt + ' (読み込み中...)';
+      this.loadLocalImage(absolutePath, img);
+    }
+
+    img.alt = this.alt;
+    if (this.title && !width) img.title = this.title;
+
+    if (width) img.style.width = `${width}px`;
+    if (height) img.style.height = `${height}px`;
+
+    img.style.maxWidth = '100%';
+
+    return img;
+  }
+
+  private async loadLocalImage(path: string, img: HTMLImageElement) {
+    try {
+      const data = await readFile(path);
+      const mimeType = getMimeType(path);
+      const blob = new Blob([data], { type: mimeType });
+      const blobUrl = URL.createObjectURL(blob);
+      img.src = blobUrl;
+      img.alt = this.alt;
+    } catch (e) {
+      console.error('[ImageWidget] Failed to load image:', path, e);
+      img.alt = `${this.alt} (読み込みエラー)`;
+    }
+  }
+
+  ignoreEvent() { return false; }
+}
+
 function computeHybridDecorations(state: EditorState): DecorationSet {
-  const builder = new RangeSetBuilder<Decoration>();
+  const decorations: Range<Decoration>[] = [];
   const selection = state.selection.main;
+  const baseDir = state.facet(baseDirFacet);
 
   syntaxTree(state).iterate({
     enter: (node) => {
@@ -50,7 +171,7 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
         c.firstChild();
         do {
           if (c.name === 'EmphasisMark') {
-            builder.add(c.from, c.to, Decoration.replace({}));
+            decorations.push(Decoration.replace({}).range(c.from, c.to));
           }
         } while (c.nextSibling());
       }
@@ -61,16 +182,33 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
         c.firstChild();
         do {
           if (c.name === 'HeaderMark') {
-            builder.add(c.from, c.to, Decoration.replace({}));
+            decorations.push(Decoration.replace({}).range(c.from, c.to));
           }
         } while (c.nextSibling());
+      }
+      else if (node.name === 'QuoteMark') {
+        decorations.push(Decoration.replace({
+          widget: new BlockquoteWidget()
+        }).range(node.from, node.to));
       }
       else if (node.name === 'ListMark') {
         const text = state.sliceDoc(node.from, node.to);
         if (['-', '*', '+'].includes(text)) {
-          builder.add(node.from, node.to, Decoration.replace({
+          decorations.push(Decoration.replace({
             widget: new BulletWidget()
-          }));
+          }).range(node.from, node.to));
+        }
+      }
+      else if (node.name === 'Image') {
+        if (selection.from >= node.from && selection.to <= node.to) return;
+
+        const text = state.sliceDoc(node.from, node.to);
+        const match = text.match(/^!\[(.*?)\]\((.*?)(?:\s+"(.*?)")?\)/);
+        if (match) {
+          decorations.push(Decoration.replace({
+            widget: new ImageWidget(match[2], match[1], match[3] || null, baseDir)
+          }).range(node.from, node.to));
+          return false;
         }
       }
       else if (node.name === 'Link') {
@@ -79,17 +217,14 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
         const text = state.sliceDoc(node.from, node.to);
         const match = text.match(/^\[(.*?)\]\((.*?)\)/);
         if (match) {
-          builder.add(node.from, node.to, Decoration.replace({
+          decorations.push(Decoration.replace({
             widget: new LinkWidget(match[1], match[2])
-          }));
+          }).range(node.from, node.to));
           return false;
         }
       }
       else if (node.name === 'Table') {
-        // Only render when not focused
         if (selection.from >= node.from && selection.to <= node.to) return;
-
-        // Safety check for empty range
         if (node.to <= node.from) return;
 
         const tableData: TableData = {
@@ -100,7 +235,6 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
 
         let cursor = node.node.cursor();
         if (cursor.firstChild()) {
-          // Process TableHeader
           if (cursor.name === 'TableHeader') {
             let headerCursor = cursor.node.cursor();
             if (headerCursor.firstChild()) {
@@ -112,7 +246,6 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
             }
           }
 
-          // Process Delimiter Row to determine alignment
           let child = node.node.firstChild;
           let headerNode = null;
           let firstRowNode = null;
@@ -140,7 +273,6 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
             }
           }
 
-          // Process TableRows
           child = node.node.firstChild;
           while (child) {
             if (child.name === 'TableRow') {
@@ -160,9 +292,9 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
         }
 
         try {
-          builder.add(node.from, node.to, Decoration.replace({
+          decorations.push(Decoration.replace({
             widget: new TableWidget(tableData)
-          }));
+          }).range(node.from, node.to));
         } catch (e) {
           console.error('Failed to add table decoration:', e);
         }
@@ -175,7 +307,7 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
         c.firstChild();
         do {
           if (c.name === 'CodeMark') {
-            builder.add(c.from, c.to, Decoration.replace({}));
+            decorations.push(Decoration.replace({}).range(c.from, c.to));
           }
         } while (c.nextSibling());
       }
@@ -192,26 +324,26 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
             if (i === startLine.number) className += ' cm-codeblock-start';
             if (i === endLine.number) className += ' cm-codeblock-end';
 
-            builder.add(line.from, line.from, Decoration.line({
+            decorations.push(Decoration.line({
               class: className
-            }));
+            }).range(line.from));
           }
         } else {
           for (let i = startLine.number; i <= endLine.number; i++) {
             const line = state.doc.line(i);
 
             if (i === startLine.number || i === endLine.number) {
-              builder.add(line.from, line.from, Decoration.line({
+              decorations.push(Decoration.line({
                 attributes: { style: 'display: none' }
-              }));
+              }).range(line.from));
             } else {
               let className = 'cm-codeblock-line';
               if (i === startLine.number + 1) className += ' cm-codeblock-start';
               if (i === endLine.number - 1) className += ' cm-codeblock-end';
 
-              builder.add(line.from, line.from, Decoration.line({
+              decorations.push(Decoration.line({
                 class: className
-              }));
+              }).range(line.from));
             }
           }
         }
@@ -219,7 +351,8 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
     }
   });
 
-  return builder.finish();
+  // Sort decorations by from position and return as RangeSet
+  return RangeSet.of(decorations, true);
 }
 
 export const hybridView = StateField.define<DecorationSet>({
@@ -227,7 +360,7 @@ export const hybridView = StateField.define<DecorationSet>({
     return computeHybridDecorations(state);
   },
   update(decorations, tr) {
-    if (tr.docChanged || tr.selection) {
+    if (tr.docChanged || tr.selection || tr.state.facet(baseDirFacet) !== tr.startState.facet(baseDirFacet)) {
       return computeHybridDecorations(tr.state);
     }
     return decorations;

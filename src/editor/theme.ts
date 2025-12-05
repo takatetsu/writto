@@ -2,50 +2,66 @@ import { EditorView } from '@codemirror/view';
 import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
 import { tags as t } from '@lezer/highlight';
 
-// Base theme for the editor
+// Base theme for the editor using CSS variables for dark mode support
 export const baseTheme = EditorView.theme({
   '&': {
     lineHeight: '1.6',
-    color: '#333',
+    color: 'var(--text-primary)',
+    backgroundColor: 'var(--bg-primary)',
   },
   '.cm-content': {
     maxWidth: '800px',
     margin: '0 auto',
     padding: '20px 40px',
+    caretColor: 'var(--text-primary)',
+  },
+  '.cm-cursor': {
+    borderLeftColor: 'var(--text-primary)',
   },
   '.cm-line': {
     padding: '0',
   },
+  '.cm-gutters': {
+    backgroundColor: 'var(--bg-secondary)',
+    color: 'var(--text-muted)',
+    borderRight: '1px solid var(--border-color)',
+  },
+  '.cm-activeLineGutter': {
+    backgroundColor: 'var(--hover-bg)',
+  },
+  '.cm-activeLine': {
+    backgroundColor: 'var(--bg-tertiary)',
+  },
   // Headers
-  '.cm-header-1': { fontSize: '2em', fontWeight: 'bold', borderBottom: '1px solid #eee', marginBottom: '0.5em' },
-  '.cm-header-2': { fontSize: '1.5em', fontWeight: 'bold', borderBottom: '1px solid #eee', marginBottom: '0.5em' },
+  '.cm-header-1': { fontSize: '2em', fontWeight: 'bold', borderBottom: '1px solid var(--border-light)', marginBottom: '0.5em' },
+  '.cm-header-2': { fontSize: '1.5em', fontWeight: 'bold', borderBottom: '1px solid var(--border-light)', marginBottom: '0.5em' },
   '.cm-header-3': { fontSize: '1.25em', fontWeight: 'bold', marginBottom: '0.5em' },
 
   // Lists
   '.cm-list-ul': { paddingLeft: '20px' },
 
   // Code
-  '.cm-inline-code': { backgroundColor: '#f5f5f5', borderRadius: '3px', padding: '2px 4px', fontFamily: 'monospace' },
+  '.cm-inline-code': { backgroundColor: 'var(--bg-tertiary)', borderRadius: '3px', padding: '2px 4px', fontFamily: 'monospace' },
 
   // Links
-  '.cm-link': { color: '#007bff', textDecoration: 'underline', cursor: 'pointer' },
-  '.cm-url': { color: '#0056b3', textDecoration: 'none' },
+  '.cm-link': { color: '#58a6ff', textDecoration: 'underline', cursor: 'pointer' },
+  '.cm-url': { color: '#58a6ff', textDecoration: 'none' },
 
   // Blockquote
-  '.cm-blockquote': { borderLeft: '4px solid #ccc', paddingLeft: '10px', color: '#666', marginLeft: '0' },
+  '.cm-blockquote': { color: 'var(--text-secondary)' },
 
   // Horizontal Rule
-  '.cm-hr': { borderTop: '2px solid #ddd', margin: '1em 0', display: 'block', lineHeight: '1px', fontSize: '1px' },
+  '.cm-hr': { borderTop: '2px solid var(--border-color)', margin: '1em 0', display: 'block', lineHeight: '1px', fontSize: '1px' },
 
   // Table
   '.cm-table': { borderCollapse: 'collapse', width: '100%', marginBottom: '1em' },
-  '.cm-table-head': { fontWeight: 'bold', borderBottom: '2px solid #ddd', backgroundColor: '#f9f9f9' },
-  '.cm-table-row': { borderBottom: '1px solid #eee' },
-  '.cm-table-cell': { padding: '8px', border: '1px solid #ddd' },
+  '.cm-table-head': { fontWeight: 'bold', borderBottom: '2px solid var(--border-color)', backgroundColor: 'var(--bg-secondary)' },
+  '.cm-table-row': { borderBottom: '1px solid var(--border-light)' },
+  '.cm-table-cell': { padding: '8px', border: '1px solid var(--border-color)' },
 
   // Code Block
   '.cm-codeblock-line': {
-    backgroundColor: '#f6f8fa',
+    backgroundColor: 'var(--bg-tertiary)',
     fontFamily: 'ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace',
     paddingLeft: '16px',
     paddingRight: '16px',
@@ -62,9 +78,26 @@ export const baseTheme = EditorView.theme({
     marginBottom: '1em',
     paddingBottom: '16px',
   },
+
+  // Selection
+  '.cm-selectionBackground': {
+    backgroundColor: 'var(--hover-bg) !important',
+  },
+  '&.cm-focused .cm-selectionBackground': {
+    backgroundColor: 'var(--hover-bg) !important',
+  },
+
+  // Syntax highlighting classes (using CSS variables)
+  '.cm-syntax-keyword': { color: 'var(--syntax-keyword)' },
+  '.cm-syntax-string': { color: 'var(--syntax-string)' },
+  '.cm-syntax-number': { color: 'var(--syntax-number)' },
+  '.cm-syntax-comment': { color: 'var(--syntax-comment)' },
+  '.cm-syntax-function': { color: 'var(--syntax-function)' },
+  '.cm-syntax-variable': { color: 'var(--syntax-variable)' },
+  '.cm-syntax-operator': { color: 'var(--syntax-operator)' },
 });
 
-// Syntax highlighting to apply classes
+// Syntax highlighting to apply classes (using CSS classes for dark mode compatibility)
 export const markdownHighlighting = HighlightStyle.define([
   { tag: t.heading1, class: 'cm-header-1' },
   { tag: t.heading2, class: 'cm-header-2' },
@@ -77,28 +110,28 @@ export const markdownHighlighting = HighlightStyle.define([
   { tag: t.url, class: 'cm-url' },
   { tag: t.contentSeparator, class: 'cm-hr' },
 
-  // Code Syntax Highlighting
-  { tag: t.keyword, color: '#d73a49' },
-  { tag: t.operator, color: '#d73a49' },
-  { tag: t.comment, color: '#6a737d' },
-  { tag: t.string, color: '#032f62' },
-  { tag: t.number, color: '#005cc5' },
-  { tag: t.bool, color: '#005cc5' },
-  { tag: t.function(t.variableName), color: '#6f42c1' },
-  { tag: t.definition(t.variableName), color: '#005cc5' },
-  { tag: t.typeName, color: '#005cc5' },
-  { tag: t.tagName, color: '#22863a' },
-  { tag: t.attributeName, color: '#6f42c1' },
-  { tag: t.variableName, color: '#24292e' }, // Standard text color for variables usually, or maybe a specific color
-  { tag: t.className, color: '#6f42c1' },
-  { tag: t.propertyName, color: '#005cc5' },
-  { tag: t.regexp, color: '#032f62' },
-  { tag: t.escape, color: '#032f62' },
-  { tag: t.special(t.variableName), color: '#005cc5' }, // $var in bash often falls here
-  { tag: t.local(t.variableName), color: '#24292e' },
-  { tag: t.labelName, color: '#005cc5' },
-  { tag: t.namespace, color: '#6f42c1' },
-  { tag: t.macroName, color: '#6f42c1' },
+  // Code Syntax Highlighting - using CSS classes for dark mode compatibility
+  { tag: t.keyword, class: 'cm-syntax-keyword' },
+  { tag: t.operator, class: 'cm-syntax-operator' },
+  { tag: t.comment, class: 'cm-syntax-comment' },
+  { tag: t.string, class: 'cm-syntax-string' },
+  { tag: t.number, class: 'cm-syntax-number' },
+  { tag: t.bool, class: 'cm-syntax-number' },
+  { tag: t.function(t.variableName), class: 'cm-syntax-function' },
+  { tag: t.definition(t.variableName), class: 'cm-syntax-number' },
+  { tag: t.typeName, class: 'cm-syntax-number' },
+  { tag: t.tagName, class: 'cm-syntax-keyword' },
+  { tag: t.attributeName, class: 'cm-syntax-function' },
+  { tag: t.variableName, class: 'cm-syntax-variable' },
+  { tag: t.className, class: 'cm-syntax-function' },
+  { tag: t.propertyName, class: 'cm-syntax-number' },
+  { tag: t.regexp, class: 'cm-syntax-string' },
+  { tag: t.escape, class: 'cm-syntax-string' },
+  { tag: t.special(t.variableName), class: 'cm-syntax-number' },
+  { tag: t.local(t.variableName), class: 'cm-syntax-variable' },
+  { tag: t.labelName, class: 'cm-syntax-number' },
+  { tag: t.namespace, class: 'cm-syntax-function' },
+  { tag: t.macroName, class: 'cm-syntax-function' },
 ]);
 
 export const themeExtensions = [
