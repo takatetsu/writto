@@ -1,9 +1,10 @@
 // Update checker utility
 // Checks GitHub Releases for the latest version
 
+import { version as CURRENT_VERSION } from '../../package.json';
+
 const GITHUB_OWNER = 'takatetsu';
 const GITHUB_REPO = 'writto';
-const CURRENT_VERSION = '0.8.1';
 
 interface GitHubRelease {
     tag_name: string;
