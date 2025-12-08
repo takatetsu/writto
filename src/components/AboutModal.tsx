@@ -102,7 +102,7 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, darkMode }) =>
                 <div style={{ padding: '30px' }}>
                     <div className="about-section">
                         <h1 className="app-name" style={{ color: darkMode ? '#e0e0e0' : '#333' }}>Writto</h1>
-                        <p className="app-version" style={{ color: darkMode ? '#a0a0a0' : '#666' }}>Version 0.8.0</p>
+                        <p className="app-version" style={{ color: darkMode ? '#a0a0a0' : '#666' }}>Version 0.8.1</p>
                     </div>
 
                     <div className="about-section">

@@ -1,12 +1,12 @@
 [package]
-name = "tauri-app"
+name = "writto"
 version = "0.1.0"
 description = "A Tauri App"
 authors = ["takahashi.tetsuya"]
 edition = "2021"
 
 [lib]
-name = "tauri_app_lib"
+name = "writto_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

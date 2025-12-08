@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { getCurrentWindow } from '@tauri-apps/api/window';
+import { listen } from '@tauri-apps/api/event';
 import { marked } from 'marked';
 import Editor, { EditorHandle } from './components/Editor';
 import Sidebar from './components/Sidebar';
@@ -25,7 +26,10 @@ function App() {
     editorWidth: 100
   });
   const [showLineNumbers, setShowLineNumbers] = useState(true);
-  const [wordWrap, setWordWrap] = useState(false);
+  const [wordWrap, setWordWrap] = useState(() => {
+    const saved = localStorage.getItem('wordWrap');
+    return saved === 'true';
+  });
   const [showSidebar, setShowSidebar] = useState(true);
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
@@ -78,7 +82,11 @@ function App() {
   };
 
   const handleToggleWordWrap = () => {
-    setWordWrap(prev => !prev);
+    setWordWrap(prev => {
+      const newValue = !prev;
+      localStorage.setItem('wordWrap', String(newValue));
+      return newValue;
+    });
   };
 
   const handleToggleSidebar = () => {
@@ -231,6 +239,34 @@ function App() {
         }
       } catch (e) { console.error(e); }
     }
+  }, []);
+
+  // Listen for open-file event from Tauri (when file is double-clicked)
+  useEffect(() => {
+    const unlisten = listen<string>('open-file', async (event) => {
+      console.log('Received open-file event:', event.payload);
+      const path = event.payload;
+      if (path) {
+        try {
+          const content = await readFileContent(path);
+          if (content !== null) {
+            isLoading.current = true;
+            setDoc(content);
+            setFilePath(path);
+            setIsDirty(false);
+            setTimeout(() => {
+              isLoading.current = false;
+            }, 100);
+          }
+        } catch (error) {
+          console.error('Failed to open file:', error);
+        }
+      }
+    });
+
+    return () => {
+      unlisten.then(fn => fn());
+    };
   }, []);
 
   // Window controls
