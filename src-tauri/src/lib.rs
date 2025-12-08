@@ -16,20 +16,6 @@ fn get_system_fonts() -> Vec<String> {
     fonts
 }
 
-#[tauri::command]
-fn get_cli_file_path() -> Option<String> {
-    let args: Vec<String> = env::args().collect();
-    // First argument is the executable, second is the file path
-    if args.len() > 1 {
-        let path = &args[1];
-        // Check if it's a file path (not a flag)
-        if !path.starts_with('-') && (path.ends_with(".md") || path.ends_with(".markdown")) {
-            return Some(path.clone());
-        }
-    }
-    None
-}
-
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -38,11 +24,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_window_state::Builder::default().build())
-        .invoke_handler(tauri::generate_handler![
-            greet,
-            get_system_fonts,
-            get_cli_file_path
-        ])
+        .invoke_handler(tauri::generate_handler![greet, get_system_fonts])
         .setup(|app| {
             // Get command line arguments
             let args: Vec<String> = env::args().collect();
