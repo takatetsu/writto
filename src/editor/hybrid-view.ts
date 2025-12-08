@@ -58,18 +58,6 @@ class LinkWidget extends WidgetType {
   ignoreEvent() { return false; }
 }
 
-class BlockquoteWidget extends WidgetType {
-  toDOM() {
-    const span = document.createElement('span');
-    span.style.borderLeft = '4px solid var(--blockquote-border, #d0d7de)';
-    span.style.marginRight = '10px';
-    span.style.display = 'inline-block';
-    span.style.height = '1.6em';
-    span.style.verticalAlign = 'text-bottom';
-    return span;
-  }
-  ignoreEvent() { return false; }
-}
 
 class ImageWidget extends WidgetType {
   constructor(
@@ -186,10 +174,54 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
           }
         } while (c.nextSibling());
       }
+      else if (node.name === 'Blockquote') {
+        // Skip decoration if cursor is inside this blockquote or any ancestor blockquote (edit mode)
+        if (selection.from >= node.from && selection.to <= node.to) return;
+
+        // Also check if any ancestor Blockquote contains the cursor
+        let ancestorParent = node.node.parent;
+        while (ancestorParent) {
+          if (ancestorParent.name === 'Blockquote' && selection.from >= ancestorParent.from && selection.to <= ancestorParent.to) {
+            return; // Edit mode - ancestor blockquote contains cursor
+          }
+          ancestorParent = ancestorParent.parent;
+        }
+
+        // Handle entire blockquote with line decorations for continuous bar
+        // Count nesting level by counting parent Blockquotes
+        let nestLevel = 1;
+        let parent = node.node.parent;
+        while (parent) {
+          if (parent.name === 'Blockquote') nestLevel++;
+          parent = parent.parent;
+        }
+
+        const startLine = state.doc.lineAt(node.from);
+        const endLine = state.doc.lineAt(node.to);
+
+        for (let i = startLine.number; i <= endLine.number; i++) {
+          const line = state.doc.line(i);
+          let className = `cm-blockquote-line cm-blockquote-level-${nestLevel}`;
+          if (i === startLine.number) className += ' cm-blockquote-start';
+          if (i === endLine.number) className += ' cm-blockquote-end';
+
+          decorations.push(Decoration.line({
+            class: className
+          }).range(line.from));
+        }
+      }
       else if (node.name === 'QuoteMark') {
-        decorations.push(Decoration.replace({
-          widget: new BlockquoteWidget()
-        }).range(node.from, node.to));
+        // Check if cursor is inside any ancestor Blockquote (edit mode for entire block including nested)
+        let parent = node.node.parent;
+        while (parent) {
+          if (parent.name === 'Blockquote' && selection.from >= parent.from && selection.to <= parent.to) {
+            return; // Edit mode for entire blockquote hierarchy
+          }
+          parent = parent.parent;
+        }
+
+        // Hide the > mark
+        decorations.push(Decoration.replace({}).range(node.from, node.to));
       }
       else if (node.name === 'ListMark') {
         const text = state.sliceDoc(node.from, node.to);

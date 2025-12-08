@@ -10,7 +10,6 @@ export const baseTheme = EditorView.theme({
     backgroundColor: 'var(--bg-primary)',
   },
   '.cm-content': {
-    maxWidth: '800px',
     margin: '0 auto',
     padding: '20px 40px',
     caretColor: 'var(--text-primary)',
@@ -49,6 +48,22 @@ export const baseTheme = EditorView.theme({
 
   // Blockquote
   '.cm-blockquote': { color: 'var(--text-secondary)' },
+  '.cm-blockquote-line': {
+    borderLeft: '4px solid var(--blockquote-border, #d0d7de)',
+    paddingLeft: '16px',
+    color: 'var(--text-secondary)',
+  },
+  // Nested blockquote levels - show multiple bars using background gradient
+  '.cm-blockquote-level-2': {
+    borderLeft: 'none',
+    background: 'linear-gradient(to right, var(--blockquote-border, #d0d7de) 4px, transparent 4px, transparent 20px, var(--blockquote-border, #d0d7de) 20px, var(--blockquote-border, #d0d7de) 24px, transparent 24px)',
+    paddingLeft: '40px',
+  },
+  '.cm-blockquote-level-3': {
+    borderLeft: 'none',
+    background: 'linear-gradient(to right, var(--blockquote-border, #d0d7de) 4px, transparent 4px, transparent 20px, var(--blockquote-border, #d0d7de) 20px, var(--blockquote-border, #d0d7de) 24px, transparent 24px, transparent 40px, var(--blockquote-border, #d0d7de) 40px, var(--blockquote-border, #d0d7de) 44px, transparent 44px)',
+    paddingLeft: '60px',
+  },
 
   // Horizontal Rule
   '.cm-hr': { borderTop: '2px solid var(--border-color)', margin: '1em 0', display: 'block', lineHeight: '1px', fontSize: '1px' },

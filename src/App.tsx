@@ -20,7 +20,8 @@ function App() {
     fontSize: 14,
     fontFamily: 'Consolas, monospace',
     defaultFolderMode: 'none' as 'none' | 'specific' | 'last',
-    defaultFolderPath: ''
+    defaultFolderPath: '',
+    editorWidth: 100
   });
   const [showLineNumbers, setShowLineNumbers] = useState(true);
   const [wordWrap, setWordWrap] = useState(false);
@@ -192,7 +193,7 @@ function App() {
     setIsSettingsOpen(true);
   };
 
-  const handleSaveSettings = (newSettings: { fontSize: number; fontFamily: string; defaultFolderMode: 'none' | 'specific' | 'last'; defaultFolderPath: string }) => {
+  const handleSaveSettings = (newSettings: { fontSize: number; fontFamily: string; defaultFolderMode: 'none' | 'specific' | 'last'; defaultFolderPath: string; editorWidth: number }) => {
     console.log('Saving settings:', newSettings);
     setSettings(newSettings);
     localStorage.setItem('editorSettings', JSON.stringify(newSettings));
@@ -209,7 +210,8 @@ function App() {
           fontSize: parsedSettings.fontSize || 14,
           fontFamily: parsedSettings.fontFamily || 'Consolas, monospace',
           defaultFolderMode: parsedSettings.defaultFolderMode || 'none',
-          defaultFolderPath: parsedSettings.defaultFolderPath || ''
+          defaultFolderPath: parsedSettings.defaultFolderPath || '',
+          editorWidth: parsedSettings.editorWidth || 100
         });
 
         // Determine which folder to open on startup
@@ -235,7 +237,14 @@ function App() {
       appWindow.maximize();
     }
   };
-  const close = () => appWindow.close();
+  const close = async () => {
+    if (isDirty) {
+      if (!(await confirm('保存されていない変更があります。破棄しますか?'))) {
+        return;
+      }
+    }
+    appWindow.close();
+  };
 
   // Keyboard shortcuts
   useEffect(() => {

@@ -10,8 +10,9 @@ interface SettingsModalProps {
         fontFamily: string;
         defaultFolderMode: 'none' | 'specific' | 'last';
         defaultFolderPath: string;
+        editorWidth: number;
     };
-    onSave: (settings: { fontSize: number; fontFamily: string; defaultFolderMode: 'none' | 'specific' | 'last'; defaultFolderPath: string }) => void;
+    onSave: (settings: { fontSize: number; fontFamily: string; defaultFolderMode: 'none' | 'specific' | 'last'; defaultFolderPath: string; editorWidth: number }) => void;
 }
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings, onSave }) => {
@@ -19,6 +20,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
     const [fontFamily, setFontFamily] = useState(settings.fontFamily);
     const [defaultFolderMode, setDefaultFolderMode] = useState<'none' | 'specific' | 'last'>(settings.defaultFolderMode);
     const [defaultFolderPath, setDefaultFolderPath] = useState(settings.defaultFolderPath);
+    const [editorWidth, setEditorWidth] = useState(settings.editorWidth);
     const [availableFonts, setAvailableFonts] = useState<string[]>([]);
     const [position, setPosition] = useState({ x: 0, y: 0 });
     const [isDragging, setIsDragging] = useState(false);
@@ -73,6 +75,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
         if (isOpen) {
             setFontSize(settings.fontSize);
             setFontFamily(settings.fontFamily);
+            setEditorWidth(settings.editorWidth);
             setDefaultFolderMode(settings.defaultFolderMode);
             setDefaultFolderPath(settings.defaultFolderPath);
 
@@ -88,7 +91,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
     }, [isOpen, settings]);
 
     const handleSave = () => {
-        onSave({ fontSize, fontFamily, defaultFolderMode, defaultFolderPath });
+        onSave({ fontSize, fontFamily, defaultFolderMode, defaultFolderPath, editorWidth });
         onClose();
     };
 
@@ -178,6 +181,20 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
                                     ))}
                                 </select>
                             </div>
+                        </div>
+                    </div>
+                    <div style={{ marginBottom: '20px' }}>
+                        <h3 style={{ margin: '0 0 12px 0', fontSize: '1em', fontWeight: 'bold', color: '#333' }}>エディタ幅</h3>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                            <input
+                                type="range"
+                                min="50"
+                                max="100"
+                                value={editorWidth}
+                                onChange={(e) => setEditorWidth(Number(e.target.value))}
+                                style={{ flex: 1 }}
+                            />
+                            <span style={{ minWidth: '50px', textAlign: 'right' }}>{editorWidth}%</span>
                         </div>
                     </div>
                     <div className="setting-item" style={{ marginBottom: '20px' }}>

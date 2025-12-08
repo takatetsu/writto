@@ -20,7 +20,7 @@ export interface EditorHandle {
 interface EditorProps {
   initialDoc?: string;
   onChange?: (doc: string) => void;
-  settings?: { fontSize: number; fontFamily: string };
+  settings?: { fontSize: number; fontFamily: string; editorWidth?: number };
   showLineNumbers?: boolean;
   wordWrap?: boolean;
   activeFileDir?: string;
@@ -121,9 +121,10 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ initialDoc = "", onChang
             fontFamily: `${settings?.fontFamily || 'Consolas, monospace'} !important`
           },
           ".cm-content": {
-            maxWidth: "900px",
+            width: `${settings?.editorWidth || 100}%`,
+            maxWidth: `${settings?.editorWidth || 100}%`,
             margin: "0 auto",
-            padding: "20px 40px",
+            padding: (settings?.editorWidth || 100) === 100 ? "20px 0" : "20px 40px",
             fontSize: `${settings?.fontSize || 14}px !important`,
             fontFamily: `${settings?.fontFamily || 'Consolas, monospace'} !important`
           },
@@ -153,6 +154,7 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ initialDoc = "", onChang
   useEffect(() => {
     if (viewRef.current && settings) {
       console.log('Updating editor settings:', settings);
+      console.log('Editor width:', settings.editorWidth);
       viewRef.current.dispatch({
         effects: themeCompartment.current.reconfigure(EditorView.theme({
           "&": {
@@ -166,9 +168,10 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ initialDoc = "", onChang
             fontFamily: `${settings.fontFamily} !important`
           },
           ".cm-content": {
-            maxWidth: "900px",
+            width: `${settings.editorWidth || 100}%`,
+            maxWidth: `${settings.editorWidth || 100}%`,
             margin: "0 auto",
-            padding: "20px 40px",
+            padding: (settings.editorWidth || 100) === 100 ? "20px 0" : "20px 40px",
             fontSize: `${settings.fontSize}px !important`,
             fontFamily: `${settings.fontFamily} !important`
           },
@@ -179,7 +182,7 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ initialDoc = "", onChang
         }))
       });
     }
-  }, [settings]);
+  }, [settings?.fontSize, settings?.fontFamily, settings?.editorWidth]);
 
   // Update line numbers
   useEffect(() => {

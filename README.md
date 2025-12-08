@@ -7,17 +7,18 @@
 <a name="english"></a>
 ## English
 
-A Typora-like Markdown editor built with Tauri, React, and TypeScript.
+An inline Markdown editor built with Tauri, React, and TypeScript.
 
 ### Features
 
 - **Inline Rendering**: Hides Markdown syntax when not editing, displaying a preview-like view
+  - Improved blockquote rendering with continuous borders and nested quote support
 - **File Operations**: New, Open, Save, Save As
 - **Sidebar**: File tree and outline view
 - **Search & Replace**: Regex-supported search functionality
 - **Export**: HTML export
 - **Print**: Print and save as PDF
-- **Settings**: Customizable font size and font family
+- **Settings**: Customizable font size, font family, and editor width (50%-100%)
 - **Table Support**: GFM-compliant table rendering with alignment support
 - **Line Numbers**: Toggle line numbers display
 - **Word Wrap**: Toggle word wrap
@@ -69,17 +70,18 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 <a name="japanese"></a>
 ## 日本語
 
-Tauri、React、TypeScript で構築された、Typora ライクな Markdown エディタです。
+Tauri、React、TypeScript で構築された、インラインで動作する Markdown エディタです。
 
 ### 機能
 
 - **インラインレンダリング**: 編集していない Markdown 記法を隠し、プレビューのように表示します
+  - 引用ブロックの連続したバー表示とネスト対応、編集モードの改善
 - **ファイル操作**: 新規作成、開く、保存、名前を付けて保存
 - **サイドバー**: ファイルツリーとアウトライン表示
 - **検索と置換**: 正規表現対応の検索機能
 - **エクスポート**: HTML 形式でのエクスポート
 - **印刷**: 印刷および PDF 保存
-- **設定**: フォントサイズとフォントファミリーの変更
+- **設定**: フォントサイズ、フォントファミリー、エディタ幅（50%-100%）の変更
 - **テーブルサポート**: GFM準拠のテーブルレンダリング（配置対応）
 - **行番号**: 行番号の表示切り替え
 - **ワードラップ**: ワードラップの切り替え
