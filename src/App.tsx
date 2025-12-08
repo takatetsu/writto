@@ -9,6 +9,7 @@ import { exportHtml } from './lib/export';
 import './App.css';
 
 import MenuBar from './components/MenuBar';
+import AboutModal from './components/AboutModal';
 
 function App() {
   const [doc, setDoc] = useState<string>('');
@@ -30,6 +31,7 @@ function App() {
     const saved = localStorage.getItem('darkMode');
     return saved === 'true';
   });
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
   const editorRef = useRef<EditorHandle>(null);
   const isLoading = useRef(false);
 
@@ -193,6 +195,10 @@ function App() {
     setIsSettingsOpen(true);
   };
 
+  const handleAbout = () => {
+    setIsAboutOpen(true);
+  };
+
   const handleSaveSettings = (newSettings: { fontSize: number; fontFamily: string; defaultFolderMode: 'none' | 'specific' | 'last'; defaultFolderPath: string; editorWidth: number }) => {
     console.log('Saving settings:', newSettings);
     setSettings(newSettings);
@@ -287,6 +293,11 @@ function App() {
         settings={settings}
         onSave={handleSaveSettings}
       />
+      <AboutModal
+        isOpen={isAboutOpen}
+        onClose={() => setIsAboutOpen(false)}
+        darkMode={darkMode}
+      />
       <div id="print-container" dangerouslySetInnerHTML={{ __html: printContent }} />
       <div className="title-bar">
         <MenuBar
@@ -306,6 +317,7 @@ function App() {
           onToggleSidebar={handleToggleSidebar}
           darkMode={darkMode}
           onToggleDarkMode={handleToggleDarkMode}
+          onAbout={handleAbout}
         />
         <div className="window-title">
           {filePath ? filePath : 'Untitled'} {isDirty ? '*' : ''} - Writto

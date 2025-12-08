@@ -24,6 +24,11 @@
       "csp": null
     }
   },
+  "plugins": {
+    "shell": {
+      "open": true
+    }
+  },
   "bundle": {
     "active": true,
     "targets": "all",
@@ -41,7 +46,8 @@
           "Japanese"
         ],
         "installerIcon": "icons/icon.ico",
-        "installMode": "currentUser"
+        "installMode": "currentUser",
+        "installerHooks": "windows/hooks.nsi"
       },
       "wix": {
         "language": "ja-JP"

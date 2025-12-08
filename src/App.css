@@ -309,3 +309,81 @@ body,
   height: 14px;
   fill: currentColor;
 }
+
+/* About Modal Styling */
+.about-modal {
+  max-width: 500px;
+  width: 90%;
+}
+
+.about-section {
+  margin: 20px 0;
+  text-align: center;
+}
+
+.app-name {
+  font-size: 2em;
+  font-weight: bold;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.app-version {
+  font-size: 1.1em;
+  color: var(--text-secondary);
+  margin: 5px 0;
+}
+
+.copyright,
+.license {
+  font-size: 0.9em;
+  color: var(--text-secondary);
+  margin: 5px 0;
+}
+
+.repo-link {
+  margin: 10px 0;
+}
+
+.link-button {
+  background: none;
+  border: none;
+  color: #0366d6;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 0.9em;
+  padding: 5px 10px;
+}
+
+.dark-mode .link-button {
+  color: #58a6ff;
+}
+
+.link-button:hover {
+  text-decoration: none;
+}
+
+.development-info {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-light);
+}
+
+.development-title {
+  font-size: 1em;
+  color: var(--text-primary);
+  margin-bottom: 10px;
+}
+
+.development-text,
+.development-text-en {
+  font-size: 0.85em;
+  color: var(--text-secondary);
+  margin: 8px 0;
+  line-height: 1.5;
+}
+
+.development-text-en {
+  font-style: italic;
+  opacity: 0.8;
+}
