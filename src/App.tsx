@@ -7,6 +7,7 @@ import Sidebar from './components/Sidebar';
 import SettingsModal from './components/SettingsModal';
 import { openFile, saveFile, saveFileAs, readFileContent } from './lib/fs';
 import { exportHtml } from './lib/export';
+import { checkForUpdates } from './lib/updateChecker';
 import './App.css';
 
 import MenuBar from './components/MenuBar';
@@ -214,6 +215,20 @@ function App() {
     console.log('Settings saved to localStorage');
   };
 
+  const handleCheckForUpdates = async () => {
+    const updateInfo = await checkForUpdates();
+    if (updateInfo.hasUpdate) {
+      const result = await confirm(
+        `新しいバージョンがあります！\n\n現在: v${updateInfo.currentVersion}\n最新: v${updateInfo.latestVersion}\n\nダウンロードページを開きますか？`
+      );
+      if (result) {
+        window.open(updateInfo.releaseUrl, '_blank');
+      }
+    } else {
+      alert(`最新バージョンです\n\n現在のバージョン: v${updateInfo.currentVersion}`);
+    }
+  };
+
   // Load settings and determine initial folder
   useEffect(() => {
     const saved = localStorage.getItem('editorSettings');
@@ -239,6 +254,27 @@ function App() {
         }
       } catch (e) { console.error(e); }
     }
+
+    // Check for updates on startup (silently, only notify if update available)
+    const checkUpdatesOnStartup = async () => {
+      try {
+        const updateInfo = await checkForUpdates();
+        if (updateInfo.hasUpdate) {
+          const result = await confirm(
+            `新しいバージョンがあります！\n\n現在: v${updateInfo.currentVersion}\n最新: v${updateInfo.latestVersion}\n\nダウンロードページを開きますか？`
+          );
+          if (result) {
+            window.open(updateInfo.releaseUrl, '_blank');
+          }
+        }
+      } catch (e) {
+        console.error('Update check failed:', e);
+      }
+    };
+
+    // Delay startup update check by 2 seconds to avoid slowing down app launch
+    const timeoutId = setTimeout(checkUpdatesOnStartup, 2000);
+    return () => clearTimeout(timeoutId);
   }, []);
 
   // Listen for open-file event from Tauri (when file is double-clicked)
@@ -354,6 +390,7 @@ function App() {
           darkMode={darkMode}
           onToggleDarkMode={handleToggleDarkMode}
           onAbout={handleAbout}
+          onCheckForUpdates={handleCheckForUpdates}
         />
         <div className="window-title">
           {filePath ? filePath : 'Untitled'} {isDirty ? '*' : ''} - Writto

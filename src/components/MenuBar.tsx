@@ -18,10 +18,11 @@ interface MenuBarProps {
     darkMode: boolean;
     onToggleDarkMode: () => void;
     onAbout: () => void;
+    onCheckForUpdates: () => void;
 }
 
 const MenuBar: React.FC<MenuBarProps> = ({
-    onNew, onOpen, onSave, onSaveAs, onExportHtml, onPrint, onSettings, onFind, showLineNumbers, onToggleLineNumbers, wordWrap, onToggleWordWrap, showSidebar, onToggleSidebar, darkMode, onToggleDarkMode, onAbout
+    onNew, onOpen, onSave, onSaveAs, onExportHtml, onPrint, onSettings, onFind, showLineNumbers, onToggleLineNumbers, wordWrap, onToggleWordWrap, showSidebar, onToggleSidebar, darkMode, onToggleDarkMode, onAbout, onCheckForUpdates
 }) => {
     const [activeMenu, setActiveMenu] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
@@ -111,6 +112,8 @@ const MenuBar: React.FC<MenuBarProps> = ({
                 </div>
                 {activeMenu === 'help' && (
                     <div className="dropdown-menu">
+                        <div className="dropdown-item" onClick={() => handleItemClick(onCheckForUpdates)}>更新の確認...</div>
+                        <div className="dropdown-divider"></div>
                         <div className="dropdown-item" onClick={() => handleItemClick(onAbout)}>バージョン情報</div>
                     </div>
                 )}
