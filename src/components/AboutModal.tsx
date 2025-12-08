@@ -32,7 +32,7 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, darkMode }) =>
         if (isDragging) {
             setPosition({
                 x: e.clientX - dragOffset.x,
-                y: e.clientX - dragOffset.y
+                y: e.clientY - dragOffset.y
             });
         }
     };
@@ -106,7 +106,7 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, darkMode }) =>
                     </div>
 
                     <div className="about-section">
-                        <p className="copyright" style={{ color: darkMode ? '#a0a0a0' : '#666' }}>© 2024 takahashi.tetsuya</p>
+                        <p className="copyright" style={{ color: darkMode ? '#a0a0a0' : '#666' }}>© 2025 takahashi.tetsuya</p>
                         <p className="license" style={{ color: darkMode ? '#a0a0a0' : '#666' }}>
                             <strong>ライセンス:</strong> MIT License
                         </p>
