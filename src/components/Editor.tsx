@@ -4,6 +4,7 @@ import { EditorView, keymap, lineNumbers, highlightActiveLineGutter, highlightSp
 import { defaultKeymap, history, historyKeymap, indentWithTab } from "@codemirror/commands";
 import { markdown } from "@codemirror/lang-markdown";
 import { GFM } from "@lezer/markdown";
+import { GFMWithoutSetext } from "../editor/markdown-config";
 import { languages } from "@codemirror/language-data";
 import { openSearchPanel, searchKeymap, highlightSelectionMatches } from "@codemirror/search";
 import { foldGutter, indentOnInput, syntaxHighlighting, defaultHighlightStyle, bracketMatching, foldKeymap } from "@codemirror/language";
@@ -101,7 +102,7 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ initialDoc = "", onChang
           "regexp": "正規表現",
         }),
 
-        markdown({ codeLanguages: languages, extensions: [GFM] }),
+        markdown({ codeLanguages: languages, extensions: [GFM, GFMWithoutSetext] }),
         checkboxPlugin,
         EditorView.updateListener.of((update) => {
           if (update.docChanged && onChange) {

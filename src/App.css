@@ -9,6 +9,7 @@
   --border-color: #ccc;
   --border-light: #eee;
   --hover-bg: #e0e0e0;
+  --selection-bg: #ADD6FF;
   --menu-bg: white;
   --shadow-color: rgba(0, 0, 0, 0.2);
   --table-header-bg: #f5f5f5;
@@ -37,6 +38,7 @@
   --border-color: #444;
   --border-light: #3a3a3a;
   --hover-bg: #3a3a3a;
+  --selection-bg: #264F78;
   --menu-bg: #2d2d2d;
   --shadow-color: rgba(0, 0, 0, 0.5);
   --table-header-bg: #3a3a3a;
@@ -275,6 +277,38 @@ body,
 
 .cm-panel input[type="checkbox"] {
   accent-color: var(--text-primary);
+}
+
+/* Selection highlighting - comprehensive rules */
+/* Actual selection background */
+.cm-selectionBackground {
+  background-color: var(--selection-bg) !important;
+}
+
+.cm-editor .cm-selectionBackground {
+  background-color: var(--selection-bg) !important;
+}
+
+.cm-editor.cm-focused .cm-selectionBackground {
+  background-color: var(--selection-bg) !important;
+}
+
+.cm-editor .cm-scroller .cm-selectionLayer .cm-selectionBackground {
+  background-color: var(--selection-bg) !important;
+}
+
+/* Browser native selection as fallback */
+.cm-editor .cm-content ::selection {
+  background-color: var(--selection-bg) !important;
+}
+
+/* Matching text highlight (more subtle) */
+.cm-editor .cm-selectionMatch {
+  background-color: rgba(173, 214, 255, 0.3) !important;
+}
+
+.dark-mode .cm-editor .cm-selectionMatch {
+  background-color: rgba(38, 79, 120, 0.5) !important;
 }
 
 /* Dark mode specific button overrides */

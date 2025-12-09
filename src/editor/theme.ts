@@ -94,12 +94,21 @@ export const baseTheme = EditorView.theme({
     paddingBottom: '16px',
   },
 
-  // Selection
+  // Selection - using multiple selectors to ensure it works
   '.cm-selectionBackground': {
-    backgroundColor: 'var(--hover-bg) !important',
+    backgroundColor: 'var(--selection-bg) !important',
   },
   '&.cm-focused .cm-selectionBackground': {
-    backgroundColor: 'var(--hover-bg) !important',
+    backgroundColor: 'var(--selection-bg) !important',
+  },
+  '.cm-selectionLayer .cm-selectionBackground': {
+    backgroundColor: 'var(--selection-bg) !important',
+  },
+  '.cm-line ::selection': {
+    backgroundColor: 'var(--selection-bg) !important',
+  },
+  '& ::selection': {
+    backgroundColor: 'var(--selection-bg) !important',
   },
 
   // Syntax highlighting classes (using CSS variables)
