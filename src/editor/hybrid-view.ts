@@ -29,6 +29,72 @@ function getMimeType(path: string): string {
   return mimeTypes[ext] || 'image/jpeg';
 }
 
+// Import marked for markdown rendering inside details
+import { marked } from 'marked';
+
+// Widget for HTML <details> tag - renders collapsible sections
+class DetailsWidget extends WidgetType {
+  constructor(
+    readonly summaryText: string,
+    readonly contentText: string
+  ) {
+    super();
+  }
+
+  eq(other: DetailsWidget) {
+    return other.summaryText === this.summaryText &&
+      other.contentText === this.contentText;
+  }
+
+  toDOM() {
+    const details = document.createElement('details');
+    details.className = 'cm-details-widget';
+
+    const summary = document.createElement('summary');
+    summary.className = 'cm-details-summary';
+    summary.textContent = this.summaryText;
+
+    // Add hint text
+    const hint = document.createElement('span');
+    hint.className = 'cm-details-hint';
+    hint.textContent = '（内部クリックで編集）';
+    summary.appendChild(hint);
+
+    details.appendChild(summary);
+
+    const content = document.createElement('div');
+    content.className = 'cm-details-content';
+
+    // Use marked to render markdown content
+    try {
+      const htmlContent = marked.parse(this.contentText, { async: false }) as string;
+      content.innerHTML = htmlContent;
+    } catch (e) {
+      // Fallback to plain text if marked fails
+      content.textContent = this.contentText;
+    }
+
+    details.appendChild(content);
+    return details;
+  }
+
+  // Only ignore clicks on the summary (for toggle), allow content clicks
+  ignoreEvent(event: Event): boolean {
+    const target = event.target as HTMLElement;
+
+    // Check if click is on summary or its children (toggle area)
+    if (target?.closest('.cm-details-summary')) {
+      // Ignore click on summary - just toggle open/close
+      if (event.type === 'mousedown' || event.type === 'click') {
+        return true;
+      }
+    }
+
+    // Allow clicks on content to trigger edit mode
+    return false;
+  }
+}
+
 class BulletWidget extends WidgetType {
   toDOM() {
     const span = document.createElement('span');
@@ -382,6 +448,26 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
       }
     }
   });
+
+  // Detect and render HTML <details> tags (not part of markdown syntax tree)
+  const docText = state.doc.toString();
+  const detailsRegex = /<details>\s*<summary>([\s\S]*?)<\/summary>([\s\S]*?)<\/details>/g;
+  let match;
+
+  while ((match = detailsRegex.exec(docText)) !== null) {
+    const from = match.index;
+    const to = from + match[0].length;
+
+    // Skip if cursor is inside this details block (edit mode)
+    if (selection.from >= from && selection.to <= to) continue;
+
+    const summaryText = match[1].trim();
+    const contentText = match[2].trim();
+
+    decorations.push(Decoration.replace({
+      widget: new DetailsWidget(summaryText, contentText)
+    }).range(from, to));
+  }
 
   // Sort decorations by from position and return as RangeSet
   return RangeSet.of(decorations, true);

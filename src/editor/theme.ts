@@ -94,6 +94,97 @@ export const baseTheme = EditorView.theme({
     paddingBottom: '16px',
   },
 
+  // Details (collapsible) widget
+  '.cm-details-widget': {
+    display: 'block',
+    margin: '0.5em 0',
+    padding: '8px 12px',
+    backgroundColor: 'transparent',
+    borderRadius: '6px',
+    border: '1px solid var(--border-color)',
+  },
+  '.cm-details-summary': {
+    cursor: 'pointer',
+    fontWeight: 'bold',
+    padding: '4px 0',
+    color: 'var(--text-primary)',
+    userSelect: 'none',
+  },
+  '.cm-details-summary:hover': {
+    color: 'var(--text-secondary)',
+  },
+  '.cm-details-content': {
+    marginTop: '8px',
+    paddingTop: '8px',
+    borderTop: '1px solid var(--border-light)',
+    lineHeight: '1.6',
+  },
+  // Reset all margins inside details content
+  '.cm-details-content > *:first-child': {
+    marginTop: '0',
+  },
+  '.cm-details-content > *:last-child': {
+    marginBottom: '0',
+  },
+  // Normalize margins inside details content to match editor
+  '.cm-details-content h1, .cm-details-content h2, .cm-details-content h3, .cm-details-content h4, .cm-details-content h5, .cm-details-content h6': {
+    margin: '0',
+    lineHeight: '1.4',
+  },
+  '.cm-details-content h1': {
+    fontSize: '2em',
+    fontWeight: 'bold',
+    borderBottom: '1px solid var(--border-light)',
+  },
+  '.cm-details-content h2': {
+    fontSize: '1.5em',
+    fontWeight: 'bold',
+    borderBottom: '1px solid var(--border-light)',
+  },
+  '.cm-details-content h3': {
+    fontSize: '1.25em',
+    fontWeight: 'bold',
+  },
+  '.cm-details-content pre': {
+    backgroundColor: 'var(--bg-tertiary)',
+    borderRadius: '6px',
+    padding: '16px',
+    overflow: 'auto',
+    margin: '0',
+    border: '1px solid var(--border-light)',
+  },
+  '.cm-details-content code': {
+    fontFamily: 'ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace',
+    fontSize: '0.9em',
+  },
+  '.cm-details-content p': {
+    margin: '0',
+  },
+  '.cm-details-content ul, .cm-details-content ol': {
+    margin: '0',
+    paddingLeft: '1.5em',
+  },
+  '.cm-details-content li': {
+    margin: '0',
+  },
+  '.cm-details-content blockquote': {
+    margin: '0',
+    paddingLeft: '1em',
+    borderLeft: '4px solid var(--blockquote-border, #d0d7de)',
+    color: 'var(--text-secondary)',
+  },
+  '.cm-details-hint': {
+    marginLeft: '12px',
+    fontSize: '0.7em',
+    color: 'var(--text-muted)',
+    fontWeight: 'normal',
+    opacity: '0',
+    transition: 'opacity 0.2s',
+  },
+  '.cm-details-summary:hover .cm-details-hint': {
+    opacity: '0.7',
+  },
+
   // Selection - using multiple selectors to ensure it works
   '.cm-selectionBackground': {
     backgroundColor: 'var(--selection-bg) !important',
