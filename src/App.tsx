@@ -8,6 +8,7 @@ import SettingsModal from './components/SettingsModal';
 import { openFile, saveFile, saveFileAs, readFileContent } from './lib/fs';
 import { exportHtml, exportPdf } from './lib/export';
 import { checkForUpdates } from './lib/updateChecker';
+import { openUrl } from '@tauri-apps/plugin-opener';
 import './App.css';
 
 import MenuBar from './components/MenuBar';
@@ -232,7 +233,7 @@ function App() {
         `新しいバージョンがあります！\n\n現在: v${updateInfo.currentVersion}\n最新: v${updateInfo.latestVersion}\n\nダウンロードページを開きますか？`
       );
       if (result) {
-        window.open(updateInfo.releaseUrl, '_blank');
+        await openUrl(updateInfo.releaseUrl);
       }
     } else {
       alert(`最新バージョンです\n\n現在のバージョン: v${updateInfo.currentVersion}`);
@@ -274,7 +275,7 @@ function App() {
             `新しいバージョンがあります！\n\n現在: v${updateInfo.currentVersion}\n最新: v${updateInfo.latestVersion}\n\nダウンロードページを開きますか？`
           );
           if (result) {
-            window.open(updateInfo.releaseUrl, '_blank');
+            await openUrl(updateInfo.releaseUrl);
           }
         }
       } catch (e) {
