@@ -1,69 +1,6 @@
 # Writto
 
-[English](#english) | [日本語](#japanese)
-
----
-
-<a name="english"></a>
-## English
-
-An inline Markdown editor built with Tauri, React, and TypeScript.
-
-### Features
-
-- **Inline Rendering**: Hides Markdown syntax when not editing, displaying a preview-like view
-  - Improved blockquote rendering with continuous borders and nested quote support
-- **File Operations**: New, Open, Save, Save As
-- **Sidebar**: File tree and outline view
-- **Search & Replace**: Regex-supported search functionality
-- **Export**: HTML export
-- **Print**: Print and save as PDF
-- **Settings**: Customizable font size, font family, and editor width (50%-100%)
-- **Table Support**: GFM-compliant table rendering with alignment support
-- **Line Numbers**: Toggle line numbers display
-- **Word Wrap**: Toggle word wrap
-
-### Prerequisites
-
-To run this project, you need:
-
-- **Node.js**: For frontend dependency management and build
-- **Rust**: For building the Tauri backend
-  - [Install Rust](https://www.rust-lang.org/tools/install)
-
-### Setup and Run
-
-1. **Install Dependencies**
-
-   Run the following command in the project root directory to install required packages:
-
-   ```bash
-   npm install
-   ```
-
-2. **Run in Development Mode**
-
-   Run the following command to start the application in development mode with hot reload enabled:
-
-   ```bash
-   npm run tauri dev
-   ```
-
-   The first run may take some time to compile Rust dependencies.
-
-3. **Production Build**
-
-   To build the application for distribution, run:
-
-   ```bash
-   npm run tauri build
-   ```
-
-   The built installer and executable will be output to the `src-tauri/target/release/bundle` directory.
-
-### License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+[日本語](#japanese) | [English](#english)
 
 ---
 
@@ -71,6 +8,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 日本語
 
 Tauri、React、TypeScript で構築された、インラインで動作する Markdown エディタです。
+
+![Writto スクリーンショット](./docs/screenshot.png)
+
+### ダウンロード
+
+最新版は [GitHub Releases](https://github.com/takatetsu/writto/releases) からダウンロードできます。
+
+Windows 版のインストーラー（`.msi` または `.exe`）をダウンロードしてください。
 
 ### 機能
 
@@ -86,15 +31,17 @@ Tauri、React、TypeScript で構築された、インラインで動作する M
 - **行番号**: 行番号の表示切り替え
 - **ワードラップ**: ワードラップの切り替え
 
-### 前提条件
+### 開発者向け情報
 
-このプロジェクトを実行するには、以下の環境が必要です。
+このリポジトリをクローンして開発する場合は、以下の手順に従ってください。
+
+#### 前提条件
 
 - **Node.js**: フロントエンドの依存関係管理とビルドに使用します
 - **Rust**: Tauri バックエンドのビルドに使用します
   - [Rust のインストール方法](https://www.rust-lang.org/tools/install)
 
-### セットアップと実行
+#### セットアップと実行
 
 1. **依存関係のインストール**
 
@@ -127,3 +74,74 @@ Tauri、React、TypeScript で構築された、インラインで動作する M
 ### ライセンス
 
 このプロジェクトは MIT ライセンスの下でライセンスされています。詳細は [LICENSE](LICENSE) ファイルをご覧ください。
+
+---
+
+<a name="english"></a>
+## English
+
+An inline Markdown editor built with Tauri, React, and TypeScript.
+
+### Download
+
+Download the latest version from [GitHub Releases](https://github.com/takatetsu/writto/releases).
+
+Download the Windows installer (`.msi` or `.exe`).
+
+### Features
+
+- **Inline Rendering**: Hides Markdown syntax when not editing, displaying a preview-like view
+  - Improved blockquote rendering with continuous borders and nested quote support
+- **File Operations**: New, Open, Save, Save As
+- **Sidebar**: File tree and outline view
+- **Search & Replace**: Regex-supported search functionality
+- **Export**: HTML export
+- **Print**: Print and save as PDF
+- **Settings**: Customizable font size, font family, and editor width (50%-100%)
+- **Table Support**: GFM-compliant table rendering with alignment support
+- **Line Numbers**: Toggle line numbers display
+- **Word Wrap**: Toggle word wrap
+
+### For Developers
+
+If you want to clone this repository and develop, follow the steps below.
+
+#### Prerequisites
+
+- **Node.js**: For frontend dependency management and build
+- **Rust**: For building the Tauri backend
+  - [Install Rust](https://www.rust-lang.org/tools/install)
+
+#### Setup and Run
+
+1. **Install Dependencies**
+
+   Run the following command in the project root directory to install required packages:
+
+   ```bash
+   npm install
+   ```
+
+2. **Run in Development Mode**
+
+   Run the following command to start the application in development mode with hot reload enabled:
+
+   ```bash
+   npm run tauri dev
+   ```
+
+   The first run may take some time to compile Rust dependencies.
+
+3. **Production Build**
+
+   To build the application for distribution, run:
+
+   ```bash
+   npm run tauri build
+   ```
+
+   The built installer and executable will be output to the `src-tauri/target/release/bundle` directory.
+
+### License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
