@@ -6,7 +6,7 @@ import Editor, { EditorHandle } from './components/Editor';
 import Sidebar from './components/Sidebar';
 import SettingsModal from './components/SettingsModal';
 import { openFile, saveFile, saveFileAs, readFileContent } from './lib/fs';
-import { exportHtml } from './lib/export';
+import { exportHtml, exportPdf } from './lib/export';
 import { checkForUpdates } from './lib/updateChecker';
 import './App.css';
 
@@ -198,6 +198,10 @@ function App() {
     await exportHtml(doc);
   };
 
+  const handleExportPdf = async () => {
+    await exportPdf(doc, activeFileDir);
+  };
+
   const handlePrint = async () => {
     const html = await marked(doc);
     setPrintContent(html);
@@ -384,6 +388,7 @@ function App() {
           onSave={handleSave}
           onSaveAs={handleSaveAs}
           onExportHtml={handleExportHtml}
+          onExportPdf={handleExportPdf}
           onPrint={handlePrint}
           onSettings={handleSettings}
           onFind={handleFind}
