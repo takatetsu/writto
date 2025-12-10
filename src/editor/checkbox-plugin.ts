@@ -63,13 +63,35 @@ function checkboxes(view: EditorView) {
             enter: (node) => {
                 if (node.name === 'TaskMarker') {
                     const isChecked = view.state.sliceDoc(node.from, node.to).includes('x');
-                    builder.add(
-                        node.from,
-                        node.to,
-                        Decoration.replace({
-                            widget: new CheckboxWidget(isChecked, node.from),
-                        })
-                    );
+
+                    // Find the list marker (e.g., "- ") before the task marker
+                    // The pattern is typically: "- [ ]" where "- " is the ListMark
+                    const lineStart = view.state.doc.lineAt(node.from).from;
+                    const textBeforeMarker = view.state.sliceDoc(lineStart, node.from);
+
+                    // Find where the list marker starts (look for "- " or "* " pattern)
+                    const listMarkerMatch = textBeforeMarker.match(/^(\s*)(-|\*|\+)\s*$/);
+
+                    if (listMarkerMatch) {
+                        // Hide from the list marker to the end of TaskMarker
+                        const listMarkerStart = lineStart + listMarkerMatch[1].length;
+                        builder.add(
+                            listMarkerStart,
+                            node.to,
+                            Decoration.replace({
+                                widget: new CheckboxWidget(isChecked, node.from),
+                            })
+                        );
+                    } else {
+                        // Fallback: just replace the TaskMarker as before
+                        builder.add(
+                            node.from,
+                            node.to,
+                            Decoration.replace({
+                                widget: new CheckboxWidget(isChecked, node.from),
+                            })
+                        );
+                    }
                 }
             },
         });
