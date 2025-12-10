@@ -12,6 +12,7 @@ import { closeBrackets, closeBracketsKeymap, autocompletion, completionKeymap } 
 import { hybridView, baseDirFacet } from '../editor/hybrid-view';
 import { themeExtensions } from '../editor/theme';
 import { checkboxPlugin } from '../editor/checkbox-plugin';
+import { excelPasteHandler } from '../editor/paste-handler';
 
 export interface EditorHandle {
   scrollToLine: (line: number) => void;
@@ -143,6 +144,8 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ initialDoc = "", onChang
           baseDirCompartment.current.of(baseDirFacet.of(activeFileDir || '')),
           hybridView,
         ]),
+        // Excel paste handler - always enabled
+        excelPasteHandler,
       ],
     });
 

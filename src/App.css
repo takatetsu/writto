@@ -421,3 +421,33 @@ body,
   font-style: italic;
   opacity: 0.8;
 }
+
+/* Settings Modal Form Styling */
+.modal-content input[type="number"],
+.modal-content input[type="text"],
+.modal-content select {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  padding: 6px 10px;
+  border-radius: 4px;
+}
+
+.modal-content input[type="number"]:focus,
+.modal-content input[type="text"]:focus,
+.modal-content select:focus {
+  outline: none;
+  border-color: #5a9fd4;
+}
+
+.modal-content input[type="range"] {
+  accent-color: #5a9fd4;
+}
+
+.modal-content input[type="radio"] {
+  accent-color: #5a9fd4;
+}
+
+.modal-content label {
+  color: var(--text-primary);
+}

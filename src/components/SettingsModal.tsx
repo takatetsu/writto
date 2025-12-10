@@ -128,8 +128,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
                     pointerEvents: 'auto',
                     width: '450px',
                     boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
-                    border: '1px solid #ccc',
-                    backgroundColor: '#fff',
+                    border: '1px solid var(--border-color)',
+                    backgroundColor: 'var(--bg-primary)',
+                    color: 'var(--text-primary)',
                     zIndex: 2000
                 }}
             >
@@ -138,8 +139,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
                     onMouseDown={handleMouseDown}
                     style={{
                         padding: '10px',
-                        backgroundColor: '#f3f3f3',
-                        borderBottom: '1px solid #ddd',
+                        backgroundColor: 'var(--bg-secondary)',
+                        borderBottom: '1px solid var(--border-color)',
                         cursor: 'move',
                         display: 'flex',
                         justifyContent: 'space-between',
@@ -157,7 +158,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
                 </div>
                 <div style={{ padding: '20px' }}>
                     <div style={{ marginBottom: '20px' }}>
-                        <h3 style={{ margin: '0 0 12px 0', fontSize: '1em', fontWeight: 'bold', color: '#333' }}>フォント設定</h3>
+                        <h3 style={{ margin: '0 0 12px 0', fontSize: '1em', fontWeight: 'bold', color: 'var(--text-primary)' }}>フォント設定</h3>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <label>Font Size:</label>
@@ -184,7 +185,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
                         </div>
                     </div>
                     <div style={{ marginBottom: '20px' }}>
-                        <h3 style={{ margin: '0 0 12px 0', fontSize: '1em', fontWeight: 'bold', color: '#333' }}>エディタ幅</h3>
+                        <h3 style={{ margin: '0 0 12px 0', fontSize: '1em', fontWeight: 'bold', color: 'var(--text-primary)' }}>エディタ幅</h3>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                             <input
                                 type="range"
@@ -250,9 +251,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
                                 {defaultFolderPath && (
                                     <div style={{
                                         fontSize: '0.85em',
-                                        color: '#666',
+                                        color: 'var(--text-secondary)',
                                         padding: '5px',
-                                        backgroundColor: '#f9f9f9',
+                                        backgroundColor: 'var(--bg-tertiary)',
                                         borderRadius: '3px',
                                         wordBreak: 'break-all'
                                     }}>
@@ -291,14 +292,14 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
                             Save
                         </button>
                     </div>
-                    <div style={{ borderTop: '1px solid #ddd', paddingTop: '12px', marginTop: '15px' }}>
+                    <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '12px', marginTop: '15px' }}>
                         <div
                             onClick={() => setShowDeveloperSection(!showDeveloperSection)}
                             style={{
                                 cursor: 'pointer',
                                 fontSize: '0.9em',
                                 fontWeight: 'bold',
-                                color: '#666',
+                                color: 'var(--text-secondary)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '5px',
