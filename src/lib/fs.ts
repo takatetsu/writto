@@ -5,10 +5,20 @@ export async function openFile(): Promise<{ content: string; path: string } | nu
   try {
     const selected = await open({
       multiple: false,
-      filters: [{
-        name: 'Markdown',
-        extensions: ['md', 'markdown']
-      }]
+      filters: [
+        {
+          name: 'すべてのテキストファイル',
+          extensions: ['md', 'markdown', 'txt']
+        },
+        {
+          name: 'Markdown',
+          extensions: ['md', 'markdown']
+        },
+        {
+          name: 'テキスト',
+          extensions: ['txt']
+        }
+      ]
     });
 
     if (selected === null) return null;
@@ -50,10 +60,20 @@ export async function saveFileAs(content: string): Promise<{ path: string } | nu
 
     const path = await save({
       defaultPath: safeFilename + '.md',
-      filters: [{
-        name: 'Markdown',
-        extensions: ['md', 'markdown']
-      }]
+      filters: [
+        {
+          name: 'Markdown',
+          extensions: ['md', 'markdown']
+        },
+        {
+          name: 'テキスト',
+          extensions: ['txt']
+        },
+        {
+          name: 'すべてのテキストファイル',
+          extensions: ['md', 'markdown', 'txt']
+        }
+      ]
     });
 
     if (!path) return null;
@@ -89,7 +109,7 @@ export async function readDirectory(path: string): Promise<FileEntry[]> {
     const entries = await readDir(path);
     // Sort directories first, then files
     return entries
-      .filter(entry => entry.isDirectory || entry.name.endsWith('.md')) // Filter for directories and markdown files
+      .filter(entry => entry.isDirectory || entry.name.endsWith('.md') || entry.name.endsWith('.txt')) // Filter for directories, markdown and text files
       .map(entry => {
         // Robust path joining
         const separator = path.includes('\\') ? '\\' : '/';
@@ -150,8 +170,9 @@ export async function createFolder(parentPath: string, folderName: string): Prom
 export async function createFile(parentPath: string, fileName: string): Promise<boolean> {
   try {
     const separator = parentPath.includes('\\') ? '\\' : '/';
-    // Ensure .md extension
-    const fileNameWithExt = fileName.endsWith('.md') ? fileName : fileName + '.md';
+    // Ensure .md or .txt extension (default to .md if no supported extension)
+    const hasExtension = fileName.endsWith('.md') || fileName.endsWith('.txt');
+    const fileNameWithExt = hasExtension ? fileName : fileName + '.md';
     const newPath = parentPath.endsWith(separator) ? parentPath + fileNameWithExt : parentPath + separator + fileNameWithExt;
 
     // Check if file already exists

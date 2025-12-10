@@ -126,7 +126,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onFileSelect, doc, onNavigate, active
 
     const handleCreateFile = async () => {
         if (!currentPath) return;
-        const fileName = prompt('新しいファイルの名前を入力してください (.md拡張子は自動追加):');
+        const fileName = prompt('新しいファイルの名前を入力してください (.md / .txt 拡張子がなければ.mdを追加):');
         if (fileName && fileName.trim()) {
             const success = await createFile(currentPath, fileName.trim());
             if (success) {

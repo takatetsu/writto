@@ -56,6 +56,12 @@ function App() {
     return getDirectoryFromPath(filePath);
   }, [filePath]);
 
+  // Check if current file is plain text (.txt)
+  const isPlainText = useMemo(() => {
+    if (!filePath) return false;
+    return filePath.toLowerCase().endsWith('.txt');
+  }, [filePath]);
+
   // State for initial folder to open
   const [initialFolder, setInitialFolder] = useState<string | undefined>(undefined);
 
@@ -420,6 +426,7 @@ function App() {
             showLineNumbers={showLineNumbers}
             wordWrap={wordWrap}
             activeFileDir={activeFileDir || initialFolder}
+            isPlainText={isPlainText}
           />
         </div>
       </div>

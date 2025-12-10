@@ -25,9 +25,10 @@ interface EditorProps {
   showLineNumbers?: boolean;
   wordWrap?: boolean;
   activeFileDir?: string;
+  isPlainText?: boolean;
 }
 
-const Editor = forwardRef<EditorHandle, EditorProps>(({ initialDoc = "", onChange, settings, showLineNumbers = true, wordWrap = false, activeFileDir }, ref) => {
+const Editor = forwardRef<EditorHandle, EditorProps>(({ initialDoc = "", onChange, settings, showLineNumbers = true, wordWrap = false, activeFileDir, isPlainText = false }, ref) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const themeCompartment = useRef(new Compartment());
@@ -102,8 +103,11 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ initialDoc = "", onChang
           "regexp": "正規表現",
         }),
 
-        markdown({ codeLanguages: languages, extensions: [GFM, GFMWithoutSetext] }),
-        checkboxPlugin,
+        // Only enable markdown extensions for non-plain text files
+        ...(isPlainText ? [] : [
+          markdown({ codeLanguages: languages, extensions: [GFM, GFMWithoutSetext] }),
+          checkboxPlugin,
+        ]),
         EditorView.updateListener.of((update) => {
           if (update.docChanged && onChange) {
             onChange(update.state.doc.toString());
@@ -134,8 +138,11 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ initialDoc = "", onChang
             fontFamily: `${settings?.fontFamily || 'Consolas, monospace'} !important`
           }
         })),
-        baseDirCompartment.current.of(baseDirFacet.of(activeFileDir || '')),
-        hybridView,
+        // Only enable hybrid markdown rendering for markdown files
+        ...(isPlainText ? [] : [
+          baseDirCompartment.current.of(baseDirFacet.of(activeFileDir || '')),
+          hybridView,
+        ]),
       ],
     });
 
@@ -149,7 +156,7 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ initialDoc = "", onChang
     return () => {
       view.destroy();
     };
-  }, []);
+  }, [isPlainText]); // Recreate editor when isPlainText changes
 
   // Update settings
   useEffect(() => {
