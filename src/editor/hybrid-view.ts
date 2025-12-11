@@ -236,7 +236,14 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
         c.firstChild();
         do {
           if (c.name === 'HeaderMark') {
-            decorations.push(Decoration.replace({}).range(c.from, c.to));
+            // Hide the HeaderMark and any trailing space
+            let endPos = c.to;
+            // Check if there's a space after the HeaderMark
+            const afterMark = state.sliceDoc(c.to, c.to + 1);
+            if (afterMark === ' ') {
+              endPos = c.to + 1;
+            }
+            decorations.push(Decoration.replace({}).range(c.from, endPos));
           }
         } while (c.nextSibling());
       }

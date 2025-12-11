@@ -31,6 +31,38 @@ const Sidebar: React.FC<SidebarProps> = ({ onFileSelect, doc, onNavigate, active
         targetName: string;
         isDirectory: boolean;
     } | null>(null);
+    const [adjustedMenuPosition, setAdjustedMenuPosition] = useState<{ x: number; y: number } | null>(null);
+    const contextMenuRef = useRef<HTMLDivElement>(null);
+
+    // Adjust context menu position to stay within viewport
+    useEffect(() => {
+        if (contextMenu?.visible && contextMenuRef.current) {
+            const menuRect = contextMenuRef.current.getBoundingClientRect();
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+
+            let adjustedX = contextMenu.x;
+            let adjustedY = contextMenu.y;
+
+            // Adjust horizontal position if menu would overflow right edge
+            if (contextMenu.x + menuRect.width > viewportWidth) {
+                adjustedX = viewportWidth - menuRect.width - 5;
+            }
+
+            // Adjust vertical position if menu would overflow bottom edge
+            if (contextMenu.y + menuRect.height > viewportHeight) {
+                adjustedY = viewportHeight - menuRect.height - 5;
+            }
+
+            // Ensure menu doesn't go off the left or top edge
+            adjustedX = Math.max(5, adjustedX);
+            adjustedY = Math.max(5, adjustedY);
+
+            setAdjustedMenuPosition({ x: adjustedX, y: adjustedY });
+        } else {
+            setAdjustedMenuPosition(null);
+        }
+    }, [contextMenu]);
 
     const startResizing = React.useCallback(() => {
         setIsResizing(true);
@@ -326,10 +358,11 @@ const Sidebar: React.FC<SidebarProps> = ({ onFileSelect, doc, onNavigate, active
             )}
             {contextMenu?.visible && (
                 <div
+                    ref={contextMenuRef}
                     style={{
                         position: 'fixed',
-                        left: contextMenu.x,
-                        top: contextMenu.y,
+                        left: adjustedMenuPosition?.x ?? contextMenu.x,
+                        top: adjustedMenuPosition?.y ?? contextMenu.y,
                         backgroundColor: 'var(--menu-bg)',
                         border: '1px solid var(--border-color)',
                         borderRadius: '4px',
