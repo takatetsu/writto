@@ -36,8 +36,26 @@ export const baseTheme = EditorView.theme({
   '.cm-header-2': { fontSize: '1.5em', fontWeight: 'bold', borderBottom: '1px solid var(--border-light)', marginBottom: '0.5em' },
   '.cm-header-3': { fontSize: '1.25em', fontWeight: 'bold', marginBottom: '0.5em' },
 
-  // Lists
+  // Lists - hanging indent for wrapped lines
   '.cm-list-ul': { paddingLeft: '20px' },
+
+  // Hanging indent for bullet list items (using line decoration class)
+  '.cm-hanging-indent-bullet': {
+    paddingLeft: '1.9em',
+    textIndent: '-1.9em',
+  },
+
+  // Hanging indent for checkbox items (using line decoration class)
+  '.cm-hanging-indent-checkbox': {
+    paddingLeft: '2em',
+    textIndent: '-2em',
+  },
+
+  // Hanging indent for ordered list items (1. 2. 3.) (using line decoration class)
+  '.cm-hanging-indent-number': {
+    paddingLeft: '1.8em',
+    textIndent: '-1.8em',
+  },
 
   // Code
   '.cm-inline-code': { backgroundColor: 'var(--bg-tertiary)', borderRadius: '3px', padding: '2px 4px', fontFamily: 'monospace' },

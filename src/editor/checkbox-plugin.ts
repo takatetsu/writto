@@ -7,7 +7,6 @@ import {
     WidgetType,
 } from '@codemirror/view';
 import { syntaxTree } from '@codemirror/language';
-import { RangeSetBuilder } from '@codemirror/state';
 
 class CheckboxWidget extends WidgetType {
     constructor(readonly checked: boolean, readonly pos: number) {
@@ -54,7 +53,7 @@ class CheckboxWidget extends WidgetType {
 }
 
 function checkboxes(view: EditorView) {
-    const builder = new RangeSetBuilder<Decoration>();
+    const decorations: { from: number; to: number; decoration: Decoration }[] = [];
 
     for (const { from, to } of view.visibleRanges) {
         syntaxTree(view.state).iterate({
@@ -66,7 +65,8 @@ function checkboxes(view: EditorView) {
 
                     // Find the list marker (e.g., "- ") before the task marker
                     // The pattern is typically: "- [ ]" where "- " is the ListMark
-                    const lineStart = view.state.doc.lineAt(node.from).from;
+                    const line = view.state.doc.lineAt(node.from);
+                    const lineStart = line.from;
                     const textBeforeMarker = view.state.sliceDoc(lineStart, node.from);
 
                     // Find where the list marker starts (look for "- " or "* " pattern)
@@ -75,29 +75,41 @@ function checkboxes(view: EditorView) {
                     if (listMarkerMatch) {
                         // Hide from the list marker to the end of TaskMarker
                         const listMarkerStart = lineStart + listMarkerMatch[1].length;
-                        builder.add(
-                            listMarkerStart,
-                            node.to,
-                            Decoration.replace({
+                        decorations.push({
+                            from: listMarkerStart,
+                            to: node.to,
+                            decoration: Decoration.replace({
                                 widget: new CheckboxWidget(isChecked, node.from),
                             })
-                        );
+                        });
                     } else {
                         // Fallback: just replace the TaskMarker as before
-                        builder.add(
-                            node.from,
-                            node.to,
-                            Decoration.replace({
+                        decorations.push({
+                            from: node.from,
+                            to: node.to,
+                            decoration: Decoration.replace({
                                 widget: new CheckboxWidget(isChecked, node.from),
                             })
-                        );
+                        });
                     }
+
+                    // Add line decoration for hanging indent on checkbox items
+                    decorations.push({
+                        from: lineStart,
+                        to: lineStart,
+                        decoration: Decoration.line({
+                            class: 'cm-hanging-indent-checkbox'
+                        })
+                    });
                 }
             },
         });
     }
 
-    return builder.finish();
+    // Sort decorations by from position and convert to RangeSet
+    decorations.sort((a, b) => a.from - b.from || a.to - b.to);
+    const ranges = decorations.map(d => d.decoration.range(d.from, d.to));
+    return Decoration.set(ranges, true);
 }
 
 export const checkboxPlugin = ViewPlugin.fromClass(

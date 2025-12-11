@@ -98,6 +98,7 @@ class DetailsWidget extends WidgetType {
 class BulletWidget extends WidgetType {
   toDOM() {
     const span = document.createElement('span');
+    span.className = 'cm-list-bullet';
     span.textContent = '・';
     span.style.fontWeight = 'bold';
     span.style.marginRight = '5px';
@@ -298,10 +299,22 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
       }
       else if (node.name === 'ListMark') {
         const text = state.sliceDoc(node.from, node.to);
+        const line = state.doc.lineAt(node.from);
+
         if (['-', '*', '+'].includes(text)) {
           decorations.push(Decoration.replace({
             widget: new BulletWidget()
           }).range(node.from, node.to));
+
+          // Add line decoration for hanging indent on bullet lists
+          decorations.push(Decoration.line({
+            class: 'cm-hanging-indent-bullet'
+          }).range(line.from));
+        } else if (/^\d+\.$/.test(text)) {
+          // Ordered list (1. 2. 3.)
+          decorations.push(Decoration.line({
+            class: 'cm-hanging-indent-number'
+          }).range(line.from));
         }
       }
       else if (node.name === 'Image') {
