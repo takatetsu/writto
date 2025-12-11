@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0] - 2024-12-11
+
+### Added
+- リスト要素のぶら下げインデント機能
+  - 箇条書き、連番リスト、チェックボックスの折り返し時に2行目以降のテキスト開始位置を揃える
+
 ## [0.8.1] - 2024-12-08
 
 ### Added
