@@ -299,3 +299,49 @@ async function copyDirectoryRecursive(sourcePath: string, destPath: string): Pro
   }
 }
 
+// Move a file or folder to a different location
+export async function moveFileOrFolder(sourcePath: string, destFolderPath: string, isDirectory: boolean): Promise<boolean> {
+  try {
+    const separator = sourcePath.includes('\\') ? '\\' : '/';
+    const fileName = sourcePath.substring(sourcePath.lastIndexOf(separator) + 1);
+    const newPath = destFolderPath.endsWith(separator) ? destFolderPath + fileName : destFolderPath + separator + fileName;
+
+    // Prevent moving to itself
+    if (sourcePath === newPath) {
+      return false;
+    }
+
+    // Prevent moving a folder into its own subfolder
+    if (isDirectory && (newPath.startsWith(sourcePath + separator) || newPath === sourcePath)) {
+      alert('フォルダを自身のサブフォルダに移動することはできません。');
+      return false;
+    }
+
+    // Check if target already exists
+    const targetExists = await exists(newPath);
+    if (targetExists) {
+      alert('移動先に同じ名前のファイルまたはフォルダが既に存在します。');
+      return false;
+    }
+
+    // Try to use rename first (works for same drive)
+    try {
+      await rename(sourcePath, newPath);
+      return true;
+    } catch {
+      // If rename fails (different drives), use copy + delete
+      if (isDirectory) {
+        await copyDirectoryRecursive(sourcePath, newPath);
+      } else {
+        await copyFile(sourcePath, newPath);
+      }
+      await remove(sourcePath, { recursive: isDirectory });
+      return true;
+    }
+  } catch (err) {
+    console.error('Failed to move:', err);
+    alert('移動に失敗しました。');
+    return false;
+  }
+}
+

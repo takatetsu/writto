@@ -25,6 +25,7 @@
   --sidebar-bg: #f3f3f3;
   --sidebar-text: #333;
   --sidebar-highlight: #e6f7ff;
+  --drag-highlight: #b3e0ff;
   --icon-color: #666;
 }
 
@@ -54,6 +55,7 @@
   --sidebar-bg: #2d2d2d;
   --sidebar-text: #e0e0e0;
   --sidebar-highlight: #3a3a3a;
+  --drag-highlight: #4a6a8a;
   --icon-color: #a0a0a0;
 }
 

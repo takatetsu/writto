@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { readDirectory, FileEntry, createFolder, createFile, renameFileOrFolder, deleteFileOrFolder, copyFileOrFolder } from '../lib/fs';
+import { readDirectory, FileEntry, createFolder, createFile, renameFileOrFolder, deleteFileOrFolder, copyFileOrFolder, moveFileOrFolder } from '../lib/fs';
 import { FolderOpenIcon, FolderIcon, FileIcon, ArrowUpIcon, EditIcon, CopyIcon, TrashIcon } from './Icons';
 
 interface SidebarProps {
@@ -33,6 +33,10 @@ const Sidebar: React.FC<SidebarProps> = ({ onFileSelect, doc, onNavigate, active
     } | null>(null);
     const [adjustedMenuPosition, setAdjustedMenuPosition] = useState<{ x: number; y: number } | null>(null);
     const contextMenuRef = useRef<HTMLDivElement>(null);
+
+    // Drag and drop state
+    const [draggedItem, setDraggedItem] = useState<{ path: string; name: string; isDirectory: boolean } | null>(null);
+    const [dropTarget, setDropTarget] = useState<string | null>(null);
 
     // Adjust context menu position to stay within viewport
     useEffect(() => {
@@ -204,6 +208,100 @@ const Sidebar: React.FC<SidebarProps> = ({ onFileSelect, doc, onNavigate, active
         setContextMenu(null);
     };
 
+    // Drag and drop handlers
+    const handleDragStart = (e: React.DragEvent, path: string, name: string, isDirectory: boolean) => {
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', path);
+        e.dataTransfer.setData('application/x-sidebar-item', JSON.stringify({ path, name, isDirectory }));
+        setDraggedItem({ path, name, isDirectory });
+    };
+
+    const handleDragEnter = (e: React.DragEvent, _targetPath: string, targetIsDirectory: boolean) => {
+        // Only allow drop on directories
+        if (!targetIsDirectory) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+    };
+
+    const handleDragOver = (e: React.DragEvent, targetPath: string, targetIsDirectory: boolean) => {
+        // Only allow drop on directories
+        if (!targetIsDirectory) return;
+
+        // Always prevent default to allow drop on directories
+        e.preventDefault();
+        e.stopPropagation();
+        e.dataTransfer.dropEffect = 'move';
+
+        // Update drop target for visual feedback
+        if (dropTarget !== targetPath) {
+            setDropTarget(targetPath);
+        }
+    };
+
+    const handleDragLeave = () => {
+        setDropTarget(null);
+    };
+
+    const handleDrop = async (e: React.DragEvent, targetPath: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDropTarget(null);
+
+        // Try to get dragged item info from state first
+        let itemInfo = draggedItem;
+
+        // If state is not available, try dataTransfer
+        if (!itemInfo) {
+            try {
+                const jsonData = e.dataTransfer.getData('application/x-sidebar-item');
+                if (jsonData) {
+                    itemInfo = JSON.parse(jsonData);
+                }
+            } catch {
+                // Fallback: get path from text/plain
+                const path = e.dataTransfer.getData('text/plain');
+                if (path) {
+                    const separator = path.includes('\\') ? '\\' : '/';
+                    const name = path.substring(path.lastIndexOf(separator) + 1);
+                    itemInfo = { path, name, isDirectory: false };
+                }
+            }
+        }
+
+        if (!itemInfo) {
+            setDraggedItem(null);
+            return;
+        }
+
+        // Prevent dropping on itself
+        if (itemInfo.path === targetPath) {
+            setDraggedItem(null);
+            return;
+        }
+
+        // Prevent dropping a folder into its own subfolder
+        if (itemInfo.isDirectory) {
+            const separator = itemInfo.path.includes('\\') ? '\\' : '/';
+            if (targetPath.startsWith(itemInfo.path + separator)) {
+                alert('フォルダを自身のサブフォルダに移動することはできません。');
+                setDraggedItem(null);
+                return;
+            }
+        }
+
+        const success = await moveFileOrFolder(itemInfo.path, targetPath, itemInfo.isDirectory);
+        if (success && currentPath) {
+            loadDirectory(currentPath);
+        }
+        setDraggedItem(null);
+    };
+
+    const handleDragEnd = () => {
+        setDraggedItem(null);
+        setDropTarget(null);
+    };
+
     const outline = useMemo(() => {
         const lines = doc.split('\n');
         const items: OutlineItem[] = [];
@@ -253,6 +351,22 @@ const Sidebar: React.FC<SidebarProps> = ({ onFileSelect, doc, onNavigate, active
                 <>
                     <div
                         style={{ flex: 1, overflowY: 'auto', padding: '5px 0' }}
+                        onDragOver={(e) => {
+                            // Allow drop on the container (current directory)
+                            if (currentPath) {
+                                e.preventDefault();
+                                e.dataTransfer.dropEffect = 'move';
+                            }
+                        }}
+                        onDragEnter={() => {
+                            // Container drag enter (no action needed)
+                        }}
+                        onDrop={(e) => {
+                            // Drop on the container means drop on current directory
+                            if (currentPath && draggedItem) {
+                                handleDrop(e, currentPath);
+                            }
+                        }}
                         onContextMenu={(e) => {
                             if (currentPath) {
                                 e.preventDefault();
@@ -293,18 +407,39 @@ const Sidebar: React.FC<SidebarProps> = ({ onFileSelect, doc, onNavigate, active
                                         alignItems: 'center',
                                         fontSize: '0.9em',
                                         color: 'var(--text-muted)',
-                                        fontStyle: 'italic'
+                                        fontStyle: 'italic',
+                                        backgroundColor: dropTarget && currentPath && dropTarget === currentPath.substring(0, currentPath.lastIndexOf(currentPath.includes('\\') ? '\\' : '/')) ? 'var(--drag-highlight)' : 'transparent'
                                     }}
                                     onClick={handleUpDir}
+                                    onDragEnter={(e) => {
+                                        if (currentPath) {
+                                            const parentPath = currentPath.substring(0, currentPath.lastIndexOf(currentPath.includes('\\') ? '\\' : '/'));
+                                            if (parentPath) handleDragEnter(e, parentPath, true);
+                                        }
+                                    }}
+                                    onDragOver={(e) => {
+                                        if (currentPath) {
+                                            const parentPath = currentPath.substring(0, currentPath.lastIndexOf(currentPath.includes('\\') ? '\\' : '/'));
+                                            if (parentPath) handleDragOver(e, parentPath, true);
+                                        }
+                                    }}
+                                    onDragLeave={handleDragLeave}
+                                    onDrop={(e) => {
+                                        if (currentPath) {
+                                            const parentPath = currentPath.substring(0, currentPath.lastIndexOf(currentPath.includes('\\') ? '\\' : '/'));
+                                            if (parentPath) handleDrop(e, parentPath);
+                                        }
+                                    }}
                                 >
                                     <ArrowUpIcon /> ..
                                 </div>
                                 {files.map(file => (
                                     <div
                                         key={file.path}
+                                        draggable
                                         style={{
                                             padding: '2px 10px',
-                                            cursor: 'pointer',
+                                            cursor: 'grab',
                                             display: 'flex',
                                             alignItems: 'center',
                                             fontSize: '0.9em',
@@ -312,10 +447,18 @@ const Sidebar: React.FC<SidebarProps> = ({ onFileSelect, doc, onNavigate, active
                                             whiteSpace: 'nowrap',
                                             overflow: 'hidden',
                                             textOverflow: 'ellipsis',
-                                            backgroundColor: currentFilePath === file.path ? 'var(--sidebar-highlight)' : 'transparent'
+                                            backgroundColor: dropTarget === file.path ? 'var(--drag-highlight)' :
+                                                currentFilePath === file.path ? 'var(--sidebar-highlight)' : 'transparent',
+                                            opacity: draggedItem?.path === file.path ? 0.5 : 1
                                         }}
                                         onClick={() => file.isDirectory ? handleDirClick(file.path) : onFileSelect(file.path)}
                                         onContextMenu={(e) => handleContextMenu(e, file.path, file.name, file.isDirectory)}
+                                        onDragStart={(e) => handleDragStart(e, file.path, file.name, file.isDirectory)}
+                                        onDragEnter={(e) => handleDragEnter(e, file.path, file.isDirectory)}
+                                        onDragOver={(e) => handleDragOver(e, file.path, file.isDirectory)}
+                                        onDragLeave={handleDragLeave}
+                                        onDrop={(e) => handleDrop(e, file.path)}
+                                        onDragEnd={handleDragEnd}
                                         title={file.name}
                                     >
                                         {file.isDirectory ? <FolderIcon /> : <FileIcon />}

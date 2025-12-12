@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.1] - 2024-12-12
+
+### Added
+- ファイルエクスプローラでのドラッグ＆ドロップによるファイル/フォルダ移動機能
+
 ## [0.9.0] - 2024-12-11
 
 ### Added
