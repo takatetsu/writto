@@ -6,7 +6,7 @@ import Editor, { EditorHandle } from './components/Editor';
 import Sidebar from './components/Sidebar';
 import SettingsModal from './components/SettingsModal';
 import { openFile, saveFile, saveFileAs, readFileContent } from './lib/fs';
-import { exportHtml, exportPdf } from './lib/export';
+import { exportHtml } from './lib/export';
 import { checkForUpdates } from './lib/updateChecker';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import './App.css';
@@ -199,9 +199,7 @@ function App() {
     await exportHtml(doc);
   };
 
-  const handleExportPdf = async () => {
-    await exportPdf(doc, activeFileDir);
-  };
+
 
   const handlePrint = async () => {
     const html = await marked(doc);
@@ -389,7 +387,6 @@ function App() {
           onSave={handleSave}
           onSaveAs={handleSaveAs}
           onExportHtml={handleExportHtml}
-          onExportPdf={handleExportPdf}
           onPrint={handlePrint}
           onSettings={handleSettings}
           onFind={handleFind}

@@ -6,7 +6,6 @@ interface MenuBarProps {
     onSave: () => void;
     onSaveAs: () => void;
     onExportHtml: () => void;
-    onExportPdf: () => void;
     onPrint: () => void;
     onSettings: () => void;
     onFind: () => void;
@@ -24,7 +23,7 @@ interface MenuBarProps {
 }
 
 const MenuBar: React.FC<MenuBarProps> = ({
-    onNew, onOpen, onSave, onSaveAs, onExportHtml, onExportPdf, onPrint, onSettings, onFind, showLineNumbers, onToggleLineNumbers, wordWrap, onToggleWordWrap, showSidebar, onToggleSidebar, darkMode, onToggleDarkMode, onAbout, onCheckForUpdates, onExit
+    onNew, onOpen, onSave, onSaveAs, onExportHtml, onPrint, onSettings, onFind, showLineNumbers, onToggleLineNumbers, wordWrap, onToggleWordWrap, showSidebar, onToggleSidebar, darkMode, onToggleDarkMode, onAbout, onCheckForUpdates, onExit
 }) => {
     const [activeMenu, setActiveMenu] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
@@ -65,7 +64,6 @@ const MenuBar: React.FC<MenuBarProps> = ({
                         <div className="dropdown-item" onClick={() => handleItemClick(onSaveAs)}>名前を付けて保存...</div>
                         <div className="dropdown-divider"></div>
                         <div className="dropdown-item" onClick={() => handleItemClick(onExportHtml)}>HTMLとしてエクスポート</div>
-                        <div className="dropdown-item" onClick={() => handleItemClick(onExportPdf)}>PDFとしてエクスポート</div>
                         <div className="dropdown-item" onClick={() => handleItemClick(onPrint)}>印刷...</div>
                         <div className="dropdown-divider"></div>
                         <div className="dropdown-item" onClick={() => handleItemClick(onSettings)}>設定...</div>
