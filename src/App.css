@@ -453,3 +453,308 @@ body,
 .modal-content label {
   color: var(--text-primary);
 }
+
+/* Dark mode Mermaid diagram styling - Comprehensive Override */
+
+/* Force all SVG backgrounds */
+.dark-mode .cm-mermaid-widget svg {
+  background-color: transparent !important;
+}
+
+/* Force ALL rect elements to have dark background */
+.dark-mode .cm-mermaid-widget rect {
+  fill: #3a5070 !important;
+  stroke: #7a9ab0 !important;
+}
+
+/* Preserve pie chart legend rect colors - reset to inherit original */
+.dark-mode .cm-mermaid-widget .legend rect {
+  fill: unset !important;
+  stroke: unset !important;
+}
+
+/* Force ALL text elements to be white */
+.dark-mode .cm-mermaid-widget text {
+  fill: #ffffff !important;
+  color: #ffffff !important;
+}
+
+.dark-mode .cm-mermaid-widget tspan {
+  fill: #ffffff !important;
+  color: #ffffff !important;
+}
+
+.dark-mode .cm-mermaid-widget .nodeLabel,
+.dark-mode .cm-mermaid-widget .edgeLabel,
+.dark-mode .cm-mermaid-widget .label,
+.dark-mode .cm-mermaid-widget .labelText,
+.dark-mode .cm-mermaid-widget .messageText,
+.dark-mode .cm-mermaid-widget .loopText,
+.dark-mode .cm-mermaid-widget .noteText,
+.dark-mode .cm-mermaid-widget .titleText {
+  fill: #ffffff !important;
+  color: #ffffff !important;
+}
+
+/* Force ALL path/line elements to be visible - EXCEPT pie chart slices */
+.dark-mode .cm-mermaid-widget path:not(.pieCircle):not(.slice) {
+  stroke: #aaaaaa !important;
+}
+
+/* Preserve pie chart slice colors */
+.dark-mode .cm-mermaid-widget .pieCircle,
+.dark-mode .cm-mermaid-widget .slice {
+  /* Don't override stroke - keep original colors */
+  stroke: #1e1e1e !important;
+  stroke-width: 2px !important;
+}
+
+.dark-mode .cm-mermaid-widget line {
+  stroke: #7a9ab0 !important;
+}
+
+/* Arrowheads and markers */
+.dark-mode .cm-mermaid-widget marker path {
+  fill: #aaaaaa !important;
+  stroke: #aaaaaa !important;
+}
+
+.dark-mode .cm-mermaid-widget .arrowheadPath,
+.dark-mode .cm-mermaid-widget .arrowMarkerPath {
+  fill: #aaaaaa !important;
+}
+
+/* Circles (for state diagram start/end nodes) */
+.dark-mode .cm-mermaid-widget circle {
+  fill: #5a7a9a !important;
+  stroke: #8aaaca !important;
+}
+
+/* Flowchart nodes - more specific */
+.dark-mode .cm-mermaid-widget .node rect,
+.dark-mode .cm-mermaid-widget .node circle,
+.dark-mode .cm-mermaid-widget .node polygon,
+.dark-mode .cm-mermaid-widget .node ellipse,
+.dark-mode .cm-mermaid-widget .node rhombus {
+  fill: #3a5070 !important;
+  stroke: #7a9ab0 !important;
+}
+
+/* Edge paths specifically */
+.dark-mode .cm-mermaid-widget .edgePath path,
+.dark-mode .cm-mermaid-widget .flowchart-link {
+  stroke: #cccccc !important;
+  stroke-width: 2px !important;
+}
+
+/* Cluster backgrounds */
+.dark-mode .cm-mermaid-widget .cluster rect {
+  fill: #2d3d4d !important;
+  stroke: #5a6a7a !important;
+}
+
+/* ================== CLASS DIAGRAM ================== */
+.dark-mode .cm-mermaid-widget g.classGroup rect {
+  fill: #3a5070 !important;
+  stroke: #7a9ab0 !important;
+}
+
+.dark-mode .cm-mermaid-widget g.classGroup text {
+  fill: #ffffff !important;
+}
+
+.dark-mode .cm-mermaid-widget g.classGroup line {
+  stroke: #7a9ab0 !important;
+}
+
+.dark-mode .cm-mermaid-widget .divider {
+  stroke: #7a9ab0 !important;
+}
+
+/* Class relationship lines */
+.dark-mode .cm-mermaid-widget .relation {
+  stroke: #cccccc !important;
+  stroke-width: 2px !important;
+}
+
+/* ================== STATE DIAGRAM ================== */
+.dark-mode .cm-mermaid-widget .stateGroup rect,
+.dark-mode .cm-mermaid-widget .statediagram-state rect {
+  fill: #3a5070 !important;
+  stroke: #7a9ab0 !important;
+}
+
+.dark-mode .cm-mermaid-widget .stateGroup text,
+.dark-mode .cm-mermaid-widget .statediagram-state text {
+  fill: #ffffff !important;
+}
+
+.dark-mode .cm-mermaid-widget .transition {
+  stroke: #cccccc !important;
+}
+
+/* ================== ER DIAGRAM ================== */
+.dark-mode .cm-mermaid-widget .er.entityBox {
+  fill: #3a5070 !important;
+  stroke: #7a9ab0 !important;
+}
+
+.dark-mode .cm-mermaid-widget .er.entityLabel,
+.dark-mode .cm-mermaid-widget .er.attributeBoxOdd,
+.dark-mode .cm-mermaid-widget .er.attributeBoxEven {
+  fill: #3a5070 !important;
+}
+
+.dark-mode .cm-mermaid-widget .entityBox {
+  fill: #3a5070 !important;
+  stroke: #7a9ab0 !important;
+}
+
+.dark-mode .cm-mermaid-widget .er.relationshipLine {
+  stroke: #cccccc !important;
+}
+
+.dark-mode .cm-mermaid-widget .relationshipLabel rect {
+  fill: #2d2d2d !important;
+}
+
+/* ================== SEQUENCE DIAGRAM ================== */
+.dark-mode .cm-mermaid-widget .actor {
+  fill: #3a5070 !important;
+  stroke: #7a9ab0 !important;
+}
+
+.dark-mode .cm-mermaid-widget .actor-line {
+  stroke: #888888 !important;
+}
+
+.dark-mode .cm-mermaid-widget .messageLine0,
+.dark-mode .cm-mermaid-widget .messageLine1 {
+  stroke: #cccccc !important;
+}
+
+.dark-mode .cm-mermaid-widget .note {
+  fill: #4a5a6a !important;
+  stroke: #7a9ab0 !important;
+}
+
+.dark-mode .cm-mermaid-widget .activation0,
+.dark-mode .cm-mermaid-widget .activation1,
+.dark-mode .cm-mermaid-widget .activation2 {
+  fill: #4a6080 !important;
+  stroke: #7a9ab0 !important;
+}
+
+/* ================== JOURNEY DIAGRAM ================== */
+.dark-mode .cm-mermaid-widget .section {
+  fill: #3a5070 !important;
+  stroke: #7a9ab0 !important;
+}
+
+.dark-mode .cm-mermaid-widget .section text {
+  fill: #ffffff !important;
+}
+
+.dark-mode .cm-mermaid-widget .task {
+  fill: #4a6080 !important;
+  stroke: #7a9ab0 !important;
+}
+
+.dark-mode .cm-mermaid-widget .taskText {
+  fill: #ffffff !important;
+}
+
+.dark-mode .cm-mermaid-widget .taskTextOutsideRight,
+.dark-mode .cm-mermaid-widget .taskTextOutsideLeft {
+  fill: #e0e0e0 !important;
+}
+
+.dark-mode .cm-mermaid-widget .sectionTitle {
+  fill: #ffffff !important;
+}
+
+/* Journey section backgrounds */
+.dark-mode .cm-mermaid-widget .section0,
+.dark-mode .cm-mermaid-widget .section1,
+.dark-mode .cm-mermaid-widget .section2 {
+  fill: #3a5070 !important;
+}
+
+/* ================== REQUIREMENT DIAGRAM ================== */
+.dark-mode .cm-mermaid-widget .requirement rect,
+.dark-mode .cm-mermaid-widget .element rect {
+  fill: #3a5070 !important;
+  stroke: #7a9ab0 !important;
+}
+
+.dark-mode .cm-mermaid-widget .requirement text,
+.dark-mode .cm-mermaid-widget .element text {
+  fill: #ffffff !important;
+}
+
+.dark-mode .cm-mermaid-widget .reqLabelBox {
+  fill: #2d3d4d !important;
+  stroke: #7a9ab0 !important;
+}
+
+/* ================== PIE CHART ================== */
+.dark-mode .cm-mermaid-widget .pieOuterCircle {
+  stroke: #888888 !important;
+}
+
+.dark-mode .cm-mermaid-widget .pieTitleText,
+.dark-mode .cm-mermaid-widget .legend text,
+.dark-mode .cm-mermaid-widget .slice text {
+  fill: #e0e0e0 !important;
+}
+
+.dark-mode .cm-mermaid-widget .slice {
+  stroke: #2d2d2d !important;
+}
+
+/* ================== GANTT CHART ================== */
+.dark-mode .cm-mermaid-widget .section rect {
+  fill: #3a5070 !important;
+}
+
+.dark-mode .cm-mermaid-widget .grid .tick line {
+  stroke: #555555 !important;
+}
+
+.dark-mode .cm-mermaid-widget .grid path,
+.dark-mode .cm-mermaid-widget .grid line {
+  stroke: #555555 !important;
+}
+
+.dark-mode .cm-mermaid-widget .taskText {
+  fill: #ffffff !important;
+}
+
+/* ================== EDGE LABELS ================== */
+.dark-mode .cm-mermaid-widget .edgeLabel rect {
+  fill: #2d2d2d !important;
+  opacity: 0.9;
+}
+
+.dark-mode .cm-mermaid-widget .edgeLabel span,
+.dark-mode .cm-mermaid-widget .edgeLabel p {
+  color: #e0e0e0 !important;
+  background: #2d2d2d !important;
+}
+
+/* Labels on arrows */
+.dark-mode .cm-mermaid-widget .label foreignObject div {
+  color: #e0e0e0 !important;
+}
+
+/* General label backgrounds */
+.dark-mode .cm-mermaid-widget .labelBox {
+  fill: #2d3d4d !important;
+  stroke: #5a6a7a !important;
+}
+
+/* Polygons (for decision diamonds) */
+.dark-mode .cm-mermaid-widget polygon {
+  fill: #3a5070 !important;
+  stroke: #7a9ab0 !important;
+}

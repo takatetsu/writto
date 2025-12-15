@@ -8,6 +8,14 @@ import {
 import { syntaxTree } from '@codemirror/language';
 import { readFile } from '@tauri-apps/plugin-fs';
 import { TableWidget, TableData } from './table-widget';
+import mermaid from 'mermaid';
+
+// Initialize mermaid with default settings
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'default',
+  securityLevel: 'loose',
+});
 
 export const baseDirFacet = Facet.define<string, string>({
   combine: values => values[0] || ''
@@ -93,6 +101,364 @@ class DetailsWidget extends WidgetType {
     // Allow clicks on content to trigger edit mode
     return false;
   }
+}
+
+// Widget for Mermaid diagrams
+class MermaidWidget extends WidgetType {
+  private static counter = 0;
+
+  constructor(readonly code: string) {
+    super();
+  }
+
+  eq(other: MermaidWidget) {
+    return other.code === this.code;
+  }
+
+  toDOM() {
+    const container = document.createElement('div');
+    container.className = 'cm-mermaid-widget';
+
+    // Create a unique ID for this diagram
+    const id = `mermaid-${MermaidWidget.counter++}-${Date.now()}`;
+
+    // Render the mermaid diagram asynchronously
+    this.renderMermaid(container, id);
+
+    return container;
+  }
+
+  private async renderMermaid(container: HTMLElement, id: string) {
+    try {
+      // Check if we're in dark mode by looking at the dark-mode class on app-container
+      const appContainer = document.querySelector('.app-container');
+      const isDarkMode = appContainer?.classList.contains('dark-mode') ?? false;
+
+      // Reinitialize mermaid with the appropriate theme
+      // Use 'base' theme for dark mode to have full control via themeVariables
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: isDarkMode ? 'base' : 'default',
+        securityLevel: 'loose',
+        themeVariables: isDarkMode ? {
+          // Dark mode theme variables - comprehensive settings
+          // Use 'base' theme and fully customize colors
+
+          // Background colors
+          background: '#2d2d2d',
+          darkMode: true,
+
+          // Primary colors - used for main nodes
+          primaryColor: '#3a5a7a',
+          primaryTextColor: '#ffffff',
+          primaryBorderColor: '#7a9aba',
+
+          // Secondary colors
+          secondaryColor: '#4a6a8a',
+          secondaryTextColor: '#ffffff',
+          secondaryBorderColor: '#8aaaba',
+
+          // Tertiary colors
+          tertiaryColor: '#3a4a5a',
+          tertiaryTextColor: '#ffffff',
+          tertiaryBorderColor: '#6a7a8a',
+
+          // General text and lines
+          lineColor: '#aaaaaa',
+          textColor: '#ffffff',
+          mainBkg: '#3a5a7a',
+          nodeBorder: '#7a9aba',
+          nodeTextColor: '#ffffff',
+
+          // Flowchart
+          nodeBkg: '#3a5a7a',
+          clusterBkg: '#2d3d4d',
+          clusterBorder: '#5a6a7a',
+          defaultLinkColor: '#aaaaaa',
+          titleColor: '#ffffff',
+          edgeLabelBackground: '#2d2d2d',
+
+          // Class diagram
+          classText: '#ffffff',
+
+          // Sequence diagram
+          actorBkg: '#3a5a7a',
+          actorBorder: '#7a9aba',
+          actorTextColor: '#ffffff',
+          actorLineColor: '#888888',
+          signalColor: '#aaaaaa',
+          signalTextColor: '#ffffff',
+          labelBoxBkgColor: '#3a5a7a',
+          labelBoxBorderColor: '#7a9aba',
+          labelTextColor: '#ffffff',
+          loopTextColor: '#ffffff',
+          noteBkgColor: '#4a6a8a',
+          noteBorderColor: '#8aaaba',
+          noteTextColor: '#ffffff',
+          activationBkgColor: '#4a6a8a',
+          activationBorderColor: '#8aaaba',
+
+          // State diagram - key settings
+          labelColor: '#ffffff',
+          altBackground: '#3a5a7a',
+          compositeBackground: '#3a5a7a',
+          compositeBorder: '#7a9aba',
+          compositeTitleBackground: '#4a6a8a',
+
+          // ER diagram
+          attributeBackgroundColorOdd: '#3a5a7a',
+          attributeBackgroundColorEven: '#4a6a8a',
+
+          // Pie chart - use vibrant, distinguishable colors
+          pie1: '#5b9bd5',  // Blue
+          pie2: '#ed7d31',  // Orange
+          pie3: '#70ad47',  // Green
+          pie4: '#ffc000',  // Yellow
+          pie5: '#9e480e',  // Brown
+          pie6: '#7030a0',  // Purple
+          pie7: '#44546a',  // Dark blue-gray
+          pie8: '#ff6b6b',  // Red
+          pie9: '#4ecdc4',  // Teal
+          pie10: '#95a5a6', // Gray
+          pie11: '#e74c3c', // Bright red
+          pie12: '#3498db', // Bright blue
+          pieStrokeColor: '#1e1e1e',
+          pieStrokeWidth: '2px',
+          pieLegendTextColor: '#ffffff',
+          pieTitleTextColor: '#ffffff',
+          pieOpacity: '1',
+          pieSectionTextColor: '#ffffff',
+
+          // Additional important settings
+          fontSize: '16px',
+          fontFamily: 'sans-serif',
+
+          // Critical for text visibility
+          cScale0: '#3a5a7a',
+          cScale1: '#4a6a8a',
+          cScale2: '#5a7a9a',
+          cScale3: '#6a8aaa',
+          cScale4: '#7a9aba',
+          cScale5: '#8aaaca',
+          cScaleLabel0: '#ffffff',
+          cScaleLabel1: '#ffffff',
+          cScaleLabel2: '#ffffff',
+          cScaleLabel3: '#ffffff',
+          cScaleLabel4: '#ffffff',
+          cScaleLabel5: '#ffffff',
+        } : {},
+      });
+
+      const { svg } = await mermaid.render(id, this.code);
+      container.innerHTML = svg;
+      container.classList.add('cm-mermaid-rendered');
+
+      // For dark mode, directly modify SVG styles after rendering
+      if (isDarkMode) {
+        container.classList.add('cm-mermaid-dark');
+        this.applyDarkModeStyles(container);
+      }
+    } catch (e) {
+      console.error('Mermaid rendering error:', e);
+      container.innerHTML = `<div class="cm-mermaid-error">Mermaid構文エラー: ${e instanceof Error ? e.message : 'Unknown error'}</div>`;
+      container.classList.add('cm-mermaid-error-container');
+    }
+  }
+
+  // Apply dark mode styles directly to SVG elements
+  private applyDarkModeStyles(container: HTMLElement) {
+    const svgElement = container.querySelector('svg');
+    if (!svgElement) return;
+
+    // Dark colors for backgrounds and borders
+    const darkBgColor = '#3a5a7a';
+    const darkBgColor2 = '#4a6a8a';
+    const borderColor = '#7a9aba';
+    const textColor = '#ffffff';
+    const lineColor = '#cccccc';
+
+    // Detect diagram type by looking for specific classes or elements
+    const pieElements = svgElement.querySelectorAll('.pieTitleText, .pieCircle, .slice, [class*="pie"], [class*="slice"]');
+    const isPieChart = pieElements.length > 0;
+
+    // For pie charts, sync legend rect colors with slice colors
+    if (isPieChart) {
+      const pieSlices = svgElement.querySelectorAll('.pieCircle');
+
+      // Get slice colors
+      const sliceColors: string[] = [];
+      pieSlices.forEach(slice => {
+        const fill = slice.getAttribute('fill');
+        if (fill) sliceColors.push(fill);
+      });
+
+      // Get ALL rects in the SVG - the small ones (18x18) are legend color boxes
+      const allRects = svgElement.querySelectorAll('rect');
+
+      // Apply colors to all rects that are likely legend boxes (small size)
+      let legendRectIndex = 0;
+      allRects.forEach((rect) => {
+        const width = rect.getAttribute('width');
+        const height = rect.getAttribute('height');
+
+        // Legend rects are typically small (18x18 or similar)
+        if (width === '18' && height === '18' && legendRectIndex < sliceColors.length) {
+          rect.setAttribute('fill', sliceColors[legendRectIndex]);
+          (rect as unknown as HTMLElement).style.setProperty('fill', sliceColors[legendRectIndex], 'important');
+          legendRectIndex++;
+        }
+      });
+    }
+
+    // Force all rect elements to have dark background (skip pie chart legend rects)
+    if (!isPieChart) {
+      const rects = svgElement.querySelectorAll('rect');
+      rects.forEach((rect, index) => {
+        const currentFill = rect.getAttribute('fill') || '';
+        const currentClass = rect.getAttribute('class') || '';
+
+        // Skip only truly transparent rects
+        if (currentFill === 'none' || currentFill === 'transparent') return;
+
+        // Skip the main SVG background rect (usually the first one with no class)
+        if (index === 0 && !currentClass) return;
+
+        rect.setAttribute('fill', darkBgColor);
+        rect.setAttribute('stroke', borderColor);
+        rect.style.fill = darkBgColor;
+        rect.style.stroke = borderColor;
+      });
+    }
+
+    // Force all text elements to be white
+    const texts = svgElement.querySelectorAll('text');
+    texts.forEach(text => {
+      text.setAttribute('fill', textColor);
+      text.style.fill = textColor;
+      text.style.color = textColor;
+    });
+
+    // Force all tspan elements to be white
+    const tspans = svgElement.querySelectorAll('tspan');
+    tspans.forEach(tspan => {
+      tspan.setAttribute('fill', textColor);
+      (tspan as unknown as HTMLElement).style.fill = textColor;
+    });
+
+    // Force all path elements (lines, arrows) to be visible
+    // BUT preserve pie chart slice colors completely
+    if (!isPieChart) {
+      const paths = svgElement.querySelectorAll('path');
+      paths.forEach(path => {
+        const currentStroke = path.getAttribute('stroke') || '';
+        const currentFill = path.getAttribute('fill') || '';
+
+        // Change stroke if it exists (for lines, arrows)
+        if (currentStroke && currentStroke !== 'none' && currentStroke !== 'transparent') {
+          path.setAttribute('stroke', lineColor);
+        }
+        // Also handle filled paths (like arrowheads) - but only in markers
+        if (currentFill && currentFill !== 'none' && currentFill !== 'transparent') {
+          const isInMarker = path.closest('marker') !== null;
+          if (isInMarker) {
+            path.setAttribute('fill', lineColor);
+          }
+        }
+      });
+    } else {
+      // For pie charts, only style marker paths, leave slices alone
+      const markerPaths = svgElement.querySelectorAll('marker path');
+      markerPaths.forEach(path => {
+        path.setAttribute('fill', lineColor);
+        path.setAttribute('stroke', lineColor);
+      });
+    }
+
+    // Force all line elements to be visible
+    const lines = svgElement.querySelectorAll('line');
+    lines.forEach(line => {
+      line.setAttribute('stroke', borderColor);
+    });
+
+    // Force polygons (arrowheads, shapes) to be visible
+    // Note: Some diagrams use polygons for nodes
+    const polygons = svgElement.querySelectorAll('polygon');
+    polygons.forEach(polygon => {
+      // State diagram nodes and similar
+      polygon.setAttribute('fill', darkBgColor);
+      polygon.setAttribute('stroke', borderColor);
+      polygon.style.fill = darkBgColor;
+      polygon.style.stroke = borderColor;
+    });
+
+    // Force ellipses and circles - these are often state diagram nodes
+    const ellipses = svgElement.querySelectorAll('ellipse, circle');
+    ellipses.forEach(el => {
+      const currentFill = el.getAttribute('fill') || '';
+
+      // Skip truly transparent or the pie chart outer circle
+      if (currentFill === 'none' || currentFill === 'transparent') return;
+
+      // Make state diagram nodes dark
+      el.setAttribute('fill', darkBgColor2);
+      el.setAttribute('stroke', borderColor);
+    });
+
+    // Force marker elements (arrowheads)
+    const markers = svgElement.querySelectorAll('marker');
+    markers.forEach(marker => {
+      const markerPaths = marker.querySelectorAll('path');
+      markerPaths.forEach(path => {
+        path.setAttribute('fill', lineColor);
+        path.setAttribute('stroke', lineColor);
+      });
+    });
+
+    // Handle foreignObject elements (used for labels with HTML)
+    const foreignObjects = svgElement.querySelectorAll('foreignObject');
+    foreignObjects.forEach(fo => {
+      const elements = fo.querySelectorAll('*');
+      elements.forEach(el => {
+        (el as HTMLElement).style.color = textColor;
+        (el as HTMLElement).style.backgroundColor = 'transparent';
+      });
+    });
+
+    // Handle g (group) elements with specific classes - for state diagrams
+    const stateGroups = svgElement.querySelectorAll('.stateGroup, .statediagram-state, .state-group');
+    stateGroups.forEach(group => {
+      // Find and style the background elements in state groups
+      const groupRects = group.querySelectorAll('rect');
+      groupRects.forEach(rect => {
+        rect.setAttribute('fill', darkBgColor);
+        rect.setAttribute('stroke', borderColor);
+        rect.style.fill = darkBgColor;
+        rect.style.stroke = borderColor;
+      });
+      const groupPaths = group.querySelectorAll('path');
+      groupPaths.forEach(path => {
+        const currentFill = path.getAttribute('fill') || '';
+        if (currentFill && currentFill !== 'none' && currentFill !== 'transparent') {
+          path.setAttribute('fill', darkBgColor);
+          path.setAttribute('stroke', borderColor);
+        }
+      });
+    });
+
+    // Handle label groups
+    const labelGroups = svgElement.querySelectorAll('g');
+    labelGroups.forEach(g => {
+      const className = g.getAttribute('class') || '';
+      if (className.includes('label') || className.includes('text')) {
+        const textEls = g.querySelectorAll('text, tspan');
+        textEls.forEach(el => {
+          el.setAttribute('fill', textColor);
+        });
+      }
+    });
+  }
+
+  ignoreEvent() { return false; }
 }
 
 class BulletWidget extends WidgetType {
@@ -433,8 +799,32 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
         const startLine = state.doc.lineAt(node.from);
         const endLine = state.doc.lineAt(node.to);
 
+        // Extract language from the first line
+        const firstLineText = state.sliceDoc(startLine.from, startLine.to);
+        const langMatch = firstLineText.match(/^```(\w+)/);
+        const language = langMatch ? langMatch[1].toLowerCase() : '';
+
         const isFocused = selection.from >= node.from && selection.to <= node.to;
 
+        // Special handling for Mermaid code blocks
+        if (language === 'mermaid' && !isFocused) {
+          // Extract the mermaid code (excluding fence lines)
+          let mermaidCode = '';
+          for (let i = startLine.number + 1; i < endLine.number; i++) {
+            const line = state.doc.line(i);
+            mermaidCode += state.sliceDoc(line.from, line.to) + '\n';
+          }
+          mermaidCode = mermaidCode.trim();
+
+          if (mermaidCode) {
+            decorations.push(Decoration.replace({
+              widget: new MermaidWidget(mermaidCode)
+            }).range(node.from, node.to));
+          }
+          return false;
+        }
+
+        // Standard code block handling (for non-mermaid or focused)
         if (isFocused) {
           for (let i = startLine.number; i <= endLine.number; i++) {
             const line = state.doc.line(i);

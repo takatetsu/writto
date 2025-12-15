@@ -228,6 +228,33 @@ export const baseTheme = EditorView.theme({
   '.cm-syntax-function': { color: 'var(--syntax-function)' },
   '.cm-syntax-variable': { color: 'var(--syntax-variable)' },
   '.cm-syntax-operator': { color: 'var(--syntax-operator)' },
+
+  // Mermaid diagram widget
+  '.cm-mermaid-widget': {
+    display: 'block',
+    margin: '1em 0',
+    padding: '16px',
+    backgroundColor: 'var(--bg-secondary)',
+    borderRadius: '8px',
+    border: '1px solid var(--border-color)',
+    textAlign: 'center',
+    overflow: 'auto',
+  },
+  '.cm-mermaid-widget svg': {
+    maxWidth: '100%',
+    height: 'auto',
+  },
+  '.cm-mermaid-error': {
+    color: 'var(--error-color, #dc3545)',
+    padding: '12px',
+    backgroundColor: 'var(--error-bg, rgba(220, 53, 69, 0.1))',
+    borderRadius: '4px',
+    fontFamily: 'monospace',
+    fontSize: '0.9em',
+    textAlign: 'left',
+    whiteSpace: 'pre-wrap',
+    wordBreak: 'break-word',
+  },
 });
 
 // Syntax highlighting to apply classes (using CSS classes for dark mode compatibility)
