@@ -403,6 +403,7 @@ function App() {
           onToggleDarkMode={handleToggleDarkMode}
           onAbout={handleAbout}
           onCheckForUpdates={handleCheckForUpdates}
+          onExit={close}
         />
         <div className="window-title">
           {filePath ? filePath : 'Untitled'} {isDirty ? '*' : ''} - Writto
