@@ -156,7 +156,48 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ initialDoc = "", onChang
 
     viewRef.current = view;
 
+    // Listen for scroll-to-anchor custom events from LinkWidget
+    const handleScrollToAnchor = (e: Event) => {
+      const customEvent = e as CustomEvent<{ anchorId: string }>;
+      const anchorId = customEvent.detail?.anchorId;
+
+      if (!anchorId || !viewRef.current) return;
+
+      const doc = viewRef.current.state.doc;
+      const normalizedAnchor = anchorId.toLowerCase().replace(/-/g, ' ');
+
+      for (let i = 1; i <= doc.lines; i++) {
+        const line = doc.line(i);
+        const text = line.text;
+
+        // Check if this is a heading line
+        const headingMatch = text.match(/^(#{1,6})\s+(.+)$/);
+        if (headingMatch) {
+          const headingText = headingMatch[2].trim();
+          // Normalize heading text for comparison (support Japanese characters)
+          const normalizedHeading = headingText.toLowerCase()
+            .replace(/[^\w\s\u3040-\u309f\u30a0-\u30ff\u4e00-\u9faf]/g, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+
+          if (normalizedHeading === normalizedAnchor ||
+            headingText.toLowerCase() === anchorId.toLowerCase()) {
+            // Scroll to this line
+            viewRef.current.dispatch({
+              effects: EditorView.scrollIntoView(line.from, { y: 'start' }),
+              selection: { anchor: line.from }
+            });
+            viewRef.current.focus();
+            return;
+          }
+        }
+      }
+    };
+
+    editorRef.current.addEventListener('scroll-to-anchor', handleScrollToAnchor);
+
     return () => {
+      editorRef.current?.removeEventListener('scroll-to-anchor', handleScrollToAnchor);
       view.destroy();
     };
   }, [isPlainText]); // Recreate editor when isPlainText changes

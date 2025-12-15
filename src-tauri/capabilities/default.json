@@ -10,6 +10,7 @@
     "opener:default",
     "fs:default",
     "dialog:default",
+    "shell:allow-open",
     "core:window:allow-minimize",
     "core:window:allow-maximize",
     "core:window:allow-close",

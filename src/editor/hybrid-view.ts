@@ -7,6 +7,7 @@ import {
 } from '@codemirror/view';
 import { syntaxTree } from '@codemirror/language';
 import { readFile } from '@tauri-apps/plugin-fs';
+import { open as shellOpen } from '@tauri-apps/plugin-shell';
 import { TableWidget, TableData } from './table-widget';
 import mermaid from 'mermaid';
 
@@ -486,9 +487,102 @@ class LinkWidget extends WidgetType {
     a.style.cursor = 'pointer';
     a.style.textDecoration = 'underline';
     a.style.color = '#007bff';
+
+    // Handle Ctrl+Click for internal links
+    a.addEventListener('click', (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Check if it's an internal anchor link
+        if (this.url.startsWith('#')) {
+          const anchorId = this.url.substring(1);
+          this.scrollToAnchor(a, anchorId);
+        } else {
+          // External link - open in default browser using Tauri shell
+          shellOpen(this.url).catch(err => {
+            console.error('[LinkWidget] Failed to open URL:', err);
+          });
+        }
+      }
+    });
+
+    // Also listen to mousedown to prevent edit mode
+    a.addEventListener('mousedown', (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    });
+
+    // Show hint on hover for Ctrl+Click
+    a.title = 'Ctrl+クリックでリンク先へ移動';
+
     return a;
   }
-  ignoreEvent() { return false; }
+
+  // Scroll to the heading that matches the anchor ID
+  private scrollToAnchor(element: HTMLElement, anchorId: string) {
+    // Find the CodeMirror editor view
+    const cmContent = element.closest('.cm-content');
+    if (!cmContent) return;
+
+    const cmEditor = cmContent.closest('.cm-editor');
+    if (!cmEditor) return;
+
+    // Get the EditorView from the DOM
+    const view = (cmEditor as HTMLElement & { cmView?: EditorView }).cmView;
+    if (!view) {
+      // Fallback: dispatch custom event
+      const event = new CustomEvent('scroll-to-anchor', {
+        detail: { anchorId },
+        bubbles: true
+      });
+      element.dispatchEvent(event);
+      return;
+    }
+
+    // Search for the heading in the document
+    const doc = view.state.doc;
+    const normalizedAnchor = anchorId.toLowerCase().replace(/-/g, ' ');
+
+    for (let i = 1; i <= doc.lines; i++) {
+      const line = doc.line(i);
+      const text = line.text;
+
+      // Check if this is a heading line
+      const headingMatch = text.match(/^(#{1,6})\s+(.+)$/);
+      if (headingMatch) {
+        const headingText = headingMatch[2].trim();
+        // Normalize heading text for comparison
+        const normalizedHeading = headingText.toLowerCase()
+          .replace(/[^\w\s\u3040-\u309f\u30a0-\u30ff\u4e00-\u9faf]/g, '')
+          .replace(/\s+/g, ' ')
+          .trim();
+
+        if (normalizedHeading === normalizedAnchor ||
+          headingText.toLowerCase() === anchorId.toLowerCase()) {
+          // Scroll to this line
+          view.dispatch({
+            effects: EditorView.scrollIntoView(line.from, { y: 'start' }),
+            selection: { anchor: line.from }
+          });
+          view.focus();
+          return;
+        }
+      }
+    }
+
+    console.warn(`[LinkWidget] Anchor not found: #${anchorId}`);
+  }
+
+  ignoreEvent(event: Event) {
+    // Ignore mouse events when Ctrl is pressed (allow navigation)
+    if (event instanceof MouseEvent && (event.ctrlKey || event.metaKey)) {
+      return true;
+    }
+    return false;
+  }
 }
 
 
@@ -703,6 +797,32 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
         if (match) {
           decorations.push(Decoration.replace({
             widget: new LinkWidget(match[1], match[2])
+          }).range(node.from, node.to));
+          return false;
+        }
+      }
+      // Handle Autolink format: <http://example.com>
+      else if (node.name === 'Autolink') {
+        if (selection.from >= node.from && selection.to <= node.to) return;
+
+        const text = state.sliceDoc(node.from, node.to);
+        // Remove angle brackets from autolink
+        const url = text.slice(1, -1);
+        if (url.match(/^https?:\/\//)) {
+          decorations.push(Decoration.replace({
+            widget: new LinkWidget(url, url)
+          }).range(node.from, node.to));
+          return false;
+        }
+      }
+      // Handle plain URLs (URL node from GFM)
+      else if (node.name === 'URL') {
+        if (selection.from >= node.from && selection.to <= node.to) return;
+
+        const url = state.sliceDoc(node.from, node.to);
+        if (url.match(/^https?:\/\//)) {
+          decorations.push(Decoration.replace({
+            widget: new LinkWidget(url, url)
           }).range(node.from, node.to));
           return false;
         }
