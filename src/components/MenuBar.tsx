@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from '../contexts/I18nContext';
 
 interface MenuBarProps {
     onNew: () => void;
@@ -25,6 +26,7 @@ interface MenuBarProps {
 const MenuBar: React.FC<MenuBarProps> = ({
     onNew, onOpen, onSave, onSaveAs, onExportHtml, onPrint, onSettings, onFind, showLineNumbers, onToggleLineNumbers, wordWrap, onToggleWordWrap, showSidebar, onToggleSidebar, darkMode, onToggleDarkMode, onAbout, onCheckForUpdates, onExit
 }) => {
+    const { t } = useTranslation();
     const [activeMenu, setActiveMenu] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
 
@@ -54,54 +56,54 @@ const MenuBar: React.FC<MenuBarProps> = ({
         <div className="menu-bar" ref={menuRef}>
             <div className="menu-wrapper">
                 <div className={`menu-item ${activeMenu === 'file' ? 'active' : ''}`} onClick={() => handleMenuClick('file')}>
-                    ファイル
+                    {t('menu.file')}
                 </div>
                 {activeMenu === 'file' && (
                     <div className="dropdown-menu">
-                        <div className="dropdown-item" onClick={() => handleItemClick(onNew)}>新規作成 <span className="shortcut">Ctrl+N</span></div>
-                        <div className="dropdown-item" onClick={() => handleItemClick(onOpen)}>開く... <span className="shortcut">Ctrl+O</span></div>
-                        <div className="dropdown-item" onClick={() => handleItemClick(onSave)}>保存 <span className="shortcut">Ctrl+S</span></div>
-                        <div className="dropdown-item" onClick={() => handleItemClick(onSaveAs)}>名前を付けて保存...</div>
+                        <div className="dropdown-item" onClick={() => handleItemClick(onNew)}>{t('menu.new')} <span className="shortcut">Ctrl+N</span></div>
+                        <div className="dropdown-item" onClick={() => handleItemClick(onOpen)}>{t('menu.open')} <span className="shortcut">Ctrl+O</span></div>
+                        <div className="dropdown-item" onClick={() => handleItemClick(onSave)}>{t('menu.save')} <span className="shortcut">Ctrl+S</span></div>
+                        <div className="dropdown-item" onClick={() => handleItemClick(onSaveAs)}>{t('menu.saveAs')}</div>
                         <div className="dropdown-divider"></div>
-                        <div className="dropdown-item" onClick={() => handleItemClick(onExportHtml)}>HTMLとしてエクスポート</div>
-                        <div className="dropdown-item" onClick={() => handleItemClick(onPrint)}>印刷...</div>
+                        <div className="dropdown-item" onClick={() => handleItemClick(onExportHtml)}>{t('menu.exportHtml')}</div>
+                        <div className="dropdown-item" onClick={() => handleItemClick(onPrint)}>{t('menu.print')}</div>
                         <div className="dropdown-divider"></div>
-                        <div className="dropdown-item" onClick={() => handleItemClick(onSettings)}>設定...</div>
+                        <div className="dropdown-item" onClick={() => handleItemClick(onSettings)}>{t('menu.settings')}</div>
                         <div className="dropdown-divider"></div>
-                        <div className="dropdown-item" onClick={() => handleItemClick(onExit)}>終了</div>
+                        <div className="dropdown-item" onClick={() => handleItemClick(onExit)}>{t('menu.exit')}</div>
                     </div>
                 )}
             </div>
 
             <div className="menu-wrapper">
                 <div className={`menu-item ${activeMenu === 'edit' ? 'active' : ''}`} onClick={() => handleMenuClick('edit')}>
-                    編集
+                    {t('menu.edit')}
                 </div>
                 {activeMenu === 'edit' && (
                     <div className="dropdown-menu">
-                        <div className="dropdown-item" onClick={() => handleItemClick(onFind)}>検索... <span className="shortcut">Ctrl+F</span></div>
+                        <div className="dropdown-item" onClick={() => handleItemClick(onFind)}>{t('menu.find')} <span className="shortcut">Ctrl+F</span></div>
                     </div>
                 )}
             </div>
 
             <div className="menu-wrapper">
                 <div className={`menu-item ${activeMenu === 'view' ? 'active' : ''}`} onClick={() => handleMenuClick('view')}>
-                    表示
+                    {t('menu.view')}
                 </div>
                 {activeMenu === 'view' && (
                     <div className="dropdown-menu">
                         <div className="dropdown-item" onClick={() => handleItemClick(onToggleLineNumbers)}>
-                            {showLineNumbers ? '✓ ' : '　'}行番号表示 <span className="shortcut">Ctrl+L</span>
+                            {showLineNumbers ? '✓ ' : '　'}{t('menu.lineNumbers')} <span className="shortcut">Ctrl+L</span>
                         </div>
                         <div className="dropdown-item" onClick={() => handleItemClick(onToggleWordWrap)}>
-                            {wordWrap ? '✓ ' : '　'}行の折り返し
+                            {wordWrap ? '✓ ' : '　'}{t('menu.wordWrap')}
                         </div>
                         <div className="dropdown-item" onClick={() => handleItemClick(onToggleSidebar)}>
-                            {showSidebar ? '✓ ' : '　'}サイドバー表示
+                            {showSidebar ? '✓ ' : '　'}{t('menu.sidebar')}
                         </div>
                         <div className="dropdown-divider"></div>
                         <div className="dropdown-item" onClick={() => handleItemClick(onToggleDarkMode)}>
-                            {darkMode ? '✓ ' : '　'}ダークモード
+                            {darkMode ? '✓ ' : '　'}{t('menu.darkMode')}
                         </div>
                     </div>
                 )}
@@ -109,13 +111,13 @@ const MenuBar: React.FC<MenuBarProps> = ({
 
             <div className="menu-wrapper">
                 <div className={`menu-item ${activeMenu === 'help' ? 'active' : ''}`} onClick={() => handleMenuClick('help')}>
-                    ヘルプ
+                    {t('menu.help')}
                 </div>
                 {activeMenu === 'help' && (
                     <div className="dropdown-menu">
-                        <div className="dropdown-item" onClick={() => handleItemClick(onCheckForUpdates)}>更新の確認...</div>
+                        <div className="dropdown-item" onClick={() => handleItemClick(onCheckForUpdates)}>{t('menu.checkUpdates')}</div>
                         <div className="dropdown-divider"></div>
-                        <div className="dropdown-item" onClick={() => handleItemClick(onAbout)}>バージョン情報</div>
+                        <div className="dropdown-item" onClick={() => handleItemClick(onAbout)}>{t('menu.about')}</div>
                     </div>
                 )}
             </div>

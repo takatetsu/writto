@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { version as APP_VERSION } from '../../package.json';
+import { useTranslation } from '../contexts/I18nContext';
 
 interface AboutModalProps {
     isOpen: boolean;
@@ -8,6 +9,7 @@ interface AboutModalProps {
 }
 
 const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, darkMode }) => {
+    const { t, language } = useTranslation();
     const [position, setPosition] = useState({ x: 0, y: 0 });
     const [isDragging, setIsDragging] = useState(false);
     const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -91,7 +93,7 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, darkMode }) =>
                         userSelect: 'none'
                     }}
                 >
-                    <span style={{ fontWeight: 'bold', fontSize: '0.9em', color: darkMode ? '#e0e0e0' : '#333' }}>バージョン情報</span>
+                    <span style={{ fontWeight: 'bold', fontSize: '0.9em', color: darkMode ? '#e0e0e0' : '#333' }}>{t('about.title')}</span>
                     <div
                         onClick={onClose}
                         style={{ cursor: 'pointer', padding: '0 5px', color: darkMode ? '#e0e0e0' : '#333' }}
@@ -103,13 +105,13 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, darkMode }) =>
                 <div style={{ padding: '30px' }}>
                     <div className="about-section">
                         <h1 className="app-name" style={{ color: darkMode ? '#e0e0e0' : '#333' }}>Writto</h1>
-                        <p className="app-version" style={{ color: darkMode ? '#a0a0a0' : '#666' }}>Version {APP_VERSION}</p>
+                        <p className="app-version" style={{ color: darkMode ? '#a0a0a0' : '#666' }}>{t('about.version')} {APP_VERSION}</p>
                     </div>
 
                     <div className="about-section">
                         <p className="copyright" style={{ color: darkMode ? '#a0a0a0' : '#666' }}>© 2025 takahashi.tetsuya</p>
                         <p className="license" style={{ color: darkMode ? '#a0a0a0' : '#666' }}>
-                            <strong>ライセンス:</strong> MIT License
+                            <strong>{language === 'ja' ? 'ライセンス' : 'License'}:</strong> MIT License
                         </p>
                         <p style={{ color: darkMode ? '#a0a0a0' : '#666', fontSize: '0.9em' }}>
                             <strong>GitHub:</strong> https://github.com/takatetsu/writto
@@ -122,20 +124,27 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose, darkMode }) =>
                         borderTop: `1px solid ${darkMode ? '#555' : '#eee'}`
                     }}>
                         <p className="development-title" style={{ color: darkMode ? '#e0e0e0' : '#333' }}>
-                            <strong>開発について / Development</strong>
+                            <strong>{language === 'ja' ? '開発について' : 'About Development'}</strong>
                         </p>
-                        <p className="development-text" style={{ color: darkMode ? '#a0a0a0' : '#666' }}>
-                            このアプリケーションは <strong>Antigravity</strong> を使用し <strong>VibeCoding</strong> で開発されました。
-                        </p>
-                        <p className="development-text" style={{ color: darkMode ? '#a0a0a0' : '#666' }}>
-                            開発者は1行もコードを手書きしていません。
-                        </p>
-                        <p className="development-text-en" style={{ color: darkMode ? '#a0a0a0' : '#666', fontStyle: 'italic', opacity: 0.8 }}>
-                            This application was developed using <strong>Antigravity</strong> with <strong>VibeCoding</strong>.
-                        </p>
-                        <p className="development-text-en" style={{ color: darkMode ? '#a0a0a0' : '#666', fontStyle: 'italic', opacity: 0.8 }}>
-                            Zero lines of code were written manually by the developer.
-                        </p>
+                        {language === 'ja' ? (
+                            <>
+                                <p className="development-text" style={{ color: darkMode ? '#a0a0a0' : '#666' }}>
+                                    このアプリケーションは <strong>Antigravity</strong> を使用し <strong>VibeCoding</strong> で開発されました。
+                                </p>
+                                <p className="development-text" style={{ color: darkMode ? '#a0a0a0' : '#666' }}>
+                                    開発者は1行もコードを手書きしていません。
+                                </p>
+                            </>
+                        ) : (
+                            <>
+                                <p className="development-text" style={{ color: darkMode ? '#a0a0a0' : '#666' }}>
+                                    This application was developed using <strong>Antigravity</strong> with <strong>VibeCoding</strong>.
+                                </p>
+                                <p className="development-text" style={{ color: darkMode ? '#a0a0a0' : '#666' }}>
+                                    Zero lines of code were written manually by the developer.
+                                </p>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>

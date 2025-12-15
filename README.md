@@ -1,79 +1,6 @@
 # Writto
 
-[日本語](#japanese) | [English](#english)
-
----
-
-<a name="japanese"></a>
-## 日本語
-
-Tauri、React、TypeScript で構築された、インラインで動作する Markdown エディタです。
-
-![Writto スクリーンショット](./docs/screenshot.png)
-
-### ダウンロード
-
-最新版は [GitHub Releases](https://github.com/takatetsu/writto/releases) からダウンロードできます。
-
-Windows 版のインストーラー（`.msi` または `.exe`）をダウンロードしてください。
-
-### 機能
-
-- **インラインレンダリング**: 編集していない Markdown 記法を隠し、プレビューのように表示します
-  - 引用ブロックの連続したバー表示とネスト対応、編集モードの改善
-- **ファイル操作**: 新規作成、開く、保存、名前を付けて保存
-- **サイドバー**: ファイルツリーとアウトライン表示
-- **検索と置換**: 正規表現対応の検索機能
-- **エクスポート**: HTML 形式でのエクスポート
-- **印刷**: 印刷および PDF 保存
-- **設定**: フォントサイズ、フォントファミリー、エディタ幅（50%-100%）の変更
-- **テーブルサポート**: GFM準拠のテーブルレンダリング（配置対応）
-- **行番号**: 行番号の表示切り替え
-- **ワードラップ**: ワードラップの切り替え
-
-### 開発者向け情報
-
-このリポジトリをクローンして開発する場合は、以下の手順に従ってください。
-
-#### 前提条件
-
-- **Node.js**: フロントエンドの依存関係管理とビルドに使用します
-- **Rust**: Tauri バックエンドのビルドに使用します
-  - [Rust のインストール方法](https://www.rust-lang.org/tools/install)
-
-#### セットアップと実行
-
-1. **依存関係のインストール**
-
-   プロジェクトのルートディレクトリで以下のコマンドを実行し、必要なパッケージをインストールします。
-
-   ```bash
-   npm install
-   ```
-
-2. **開発モードで実行**
-
-   以下のコマンドを実行すると、アプリケーションが開発モードで起動します。ホットリロードが有効になっています。
-
-   ```bash
-   npm run tauri dev
-   ```
-
-   初回起動時は Rust の依存関係のコンパイルに時間がかかる場合があります。
-
-3. **プロダクションビルド**
-
-   配布用のアプリケーションをビルドするには、以下のコマンドを実行します。
-
-   ```bash
-   npm run tauri build
-   ```
-
-   ビルドされたインストーラーや実行ファイルは `src-tauri/target/release/bundle` ディレクトリに出力されます。
-
-### ライセンス
-
-このプロジェクトは MIT ライセンスの下でライセンスされています。詳細は [LICENSE](LICENSE) ファイルをご覧ください。
+[English](#english) | [日本語](#japanese)
 
 ---
 
@@ -81,6 +8,8 @@ Windows 版のインストーラー（`.msi` または `.exe`）をダウンロ�
 ## English
 
 An inline Markdown editor built with Tauri, React, and TypeScript.
+
+![Writto Screenshot](./docs/screenshot.png)
 
 ### Download
 
@@ -99,8 +28,11 @@ Download the Windows installer (`.msi` or `.exe`).
 - **Print**: Print and save as PDF
 - **Settings**: Customizable font size, font family, and editor width (50%-100%)
 - **Table Support**: GFM-compliant table rendering with alignment support
+- **Mermaid Diagrams**: Support for Mermaid diagram rendering
 - **Line Numbers**: Toggle line numbers display
 - **Word Wrap**: Toggle word wrap
+- **Dark Mode**: Full dark mode support
+- **Internationalization**: English and Japanese UI support
 
 ### For Developers
 
@@ -145,3 +77,77 @@ If you want to clone this repository and develop, follow the steps below.
 ### License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+<a name="japanese"></a>
+## 日本語
+
+Tauri、React、TypeScript で構築された、インラインで動作する Markdown エディタです。
+
+### ダウンロード
+
+最新版は [GitHub Releases](https://github.com/takatetsu/writto/releases) からダウンロードできます。
+
+Windows 版のインストーラー（`.msi` または `.exe`）をダウンロードしてください。
+
+### 機能
+
+- **インラインレンダリング**: 編集していない Markdown 記法を隠し、プレビューのように表示します
+  - 引用ブロックの連続したバー表示とネスト対応、編集モードの改善
+- **ファイル操作**: 新規作成、開く、保存、名前を付けて保存
+- **サイドバー**: ファイルツリーとアウトライン表示
+- **検索と置換**: 正規表現対応の検索機能
+- **エクスポート**: HTML 形式でのエクスポート
+- **印刷**: 印刷および PDF 保存
+- **設定**: フォントサイズ、フォントファミリー、エディタ幅（50%-100%）の変更
+- **テーブルサポート**: GFM準拠のテーブルレンダリング（配置対応）
+- **Mermaid**: Mermaid図のレンダリング対応
+- **行番号**: 行番号の表示切り替え
+- **ワードラップ**: ワードラップの切り替え
+- **ダークモード**: 完全なダークモード対応
+- **多言語化**: 英語と日本語のUI対応
+
+### 開発者向け情報
+
+このリポジトリをクローンして開発する場合は、以下の手順に従ってください。
+
+#### 前提条件
+
+- **Node.js**: フロントエンドの依存関係管理とビルドに使用します
+- **Rust**: Tauri バックエンドのビルドに使用します
+  - [Rust のインストール方法](https://www.rust-lang.org/tools/install)
+
+#### セットアップと実行
+
+1. **依存関係のインストール**
+
+   プロジェクトのルートディレクトリで以下のコマンドを実行し、必要なパッケージをインストールします。
+
+   ```bash
+   npm install
+   ```
+
+2. **開発モードで実行**
+
+   以下のコマンドを実行すると、アプリケーションが開発モードで起動します。ホットリロードが有効になっています。
+
+   ```bash
+   npm run tauri dev
+   ```
+
+   初回起動時は Rust の依存関係のコンパイルに時間がかかる場合があります。
+
+3. **プロダクションビルド**
+
+   配布用のアプリケーションをビルドするには、以下のコマンドを実行します。
+
+   ```bash
+   npm run tauri build
+   ```
+
+   ビルドされたインストーラーや実行ファイルは `src-tauri/target/release/bundle` ディレクトリに出力されます。
+
+### ライセンス
+
+このプロジェクトは MIT ライセンスの下でライセンスされています。詳細は [LICENSE](LICENSE) ファイルをご覧ください。

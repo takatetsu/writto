@@ -13,6 +13,7 @@ import './App.css';
 
 import MenuBar from './components/MenuBar';
 import AboutModal from './components/AboutModal';
+import { I18nProvider } from './contexts/I18nContext';
 
 function App() {
   const [doc, setDoc] = useState<string>('');
@@ -438,4 +439,12 @@ function App() {
   );
 }
 
-export default App;
+function AppWrapper() {
+  return (
+    <I18nProvider>
+      <App />
+    </I18nProvider>
+  );
+}
+
+export default AppWrapper;

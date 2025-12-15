@@ -515,8 +515,9 @@ class LinkWidget extends WidgetType {
       }
     });
 
-    // Show hint on hover for Ctrl+Click
-    a.title = 'Ctrl+クリックでリンク先へ移動';
+    // Show hint on hover for Ctrl+Click (language based on browser settings)
+    const isJapanese = navigator.language.startsWith('ja') || localStorage.getItem('language') === 'ja';
+    a.title = isJapanese ? 'Ctrl+クリックでリンク先へ移動' : 'Ctrl+Click to follow link';
 
     return a;
   }
