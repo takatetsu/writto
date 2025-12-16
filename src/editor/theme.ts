@@ -69,6 +69,7 @@ export const baseTheme = EditorView.theme({
   '.cm-blockquote-line': {
     borderLeft: '4px solid var(--blockquote-border, #d0d7de)',
     paddingLeft: '16px',
+    marginLeft: 'var(--blockquote-indent, 0px)',
     color: 'var(--text-secondary)',
   },
   // Nested blockquote levels - show multiple bars using background gradient
@@ -76,11 +77,13 @@ export const baseTheme = EditorView.theme({
     borderLeft: 'none',
     background: 'linear-gradient(to right, var(--blockquote-border, #d0d7de) 4px, transparent 4px, transparent 20px, var(--blockquote-border, #d0d7de) 20px, var(--blockquote-border, #d0d7de) 24px, transparent 24px)',
     paddingLeft: '40px',
+    marginLeft: 'var(--blockquote-indent, 0px)',
   },
   '.cm-blockquote-level-3': {
     borderLeft: 'none',
     background: 'linear-gradient(to right, var(--blockquote-border, #d0d7de) 4px, transparent 4px, transparent 20px, var(--blockquote-border, #d0d7de) 20px, var(--blockquote-border, #d0d7de) 24px, transparent 24px, transparent 40px, var(--blockquote-border, #d0d7de) 40px, var(--blockquote-border, #d0d7de) 44px, transparent 44px)',
     paddingLeft: '60px',
+    marginLeft: 'var(--blockquote-indent, 0px)',
   },
 
   // Horizontal Rule
@@ -98,18 +101,52 @@ export const baseTheme = EditorView.theme({
     fontFamily: 'ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace',
     paddingLeft: '16px',
     paddingRight: '16px',
+    position: 'relative',
   },
   '.cm-codeblock-start': {
     borderTopLeftRadius: '6px',
     borderTopRightRadius: '6px',
-    marginTop: '1em',
-    paddingTop: '16px',
+    borderTop: '1px solid var(--border-color)',
+  },
+  // Add visual padding above the first line using ::before
+  '.cm-codeblock-start::before': {
+    content: '""',
+    display: 'block',
+    height: '12px',
+    marginLeft: '-16px',
+    marginRight: '-16px',
+    backgroundColor: 'var(--bg-tertiary)',
+    borderTopLeftRadius: '6px',
+    borderTopRightRadius: '6px',
   },
   '.cm-codeblock-end': {
     borderBottomLeftRadius: '6px',
     borderBottomRightRadius: '6px',
-    marginBottom: '1em',
-    paddingBottom: '16px',
+    borderBottom: '1px solid var(--border-color)',
+  },
+  // Add visual padding below the last line using ::after
+  '.cm-codeblock-end::after': {
+    content: '""',
+    display: 'block',
+    height: '12px',
+    marginLeft: '-16px',
+    marginRight: '-16px',
+    backgroundColor: 'var(--bg-tertiary)',
+    borderBottomLeftRadius: '6px',
+    borderBottomRightRadius: '6px',
+  },
+  // Code Block Widget (for non-focused state)
+  '.cm-codeblock-widget': {
+    display: 'block',
+    margin: '1em 0',
+  },
+  '.cm-codeblock-widget pre': {
+    margin: '0',
+    whiteSpace: 'pre-wrap',
+    wordBreak: 'break-word',
+  },
+  '.cm-codeblock-widget code': {
+    display: 'block',
   },
 
   // Details (collapsible) widget

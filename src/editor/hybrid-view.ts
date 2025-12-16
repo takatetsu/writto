@@ -462,6 +462,123 @@ class MermaidWidget extends WidgetType {
   ignoreEvent() { return false; }
 }
 
+// Widget for code blocks (non-mermaid)
+class CodeBlockWidget extends WidgetType {
+  constructor(readonly code: string, readonly language: string) {
+    super();
+  }
+
+  eq(other: CodeBlockWidget) {
+    return other.code === this.code && other.language === this.language;
+  }
+
+  toDOM() {
+    const container = document.createElement('div');
+    container.className = 'cm-codeblock-widget';
+
+    const pre = document.createElement('pre');
+    pre.className = 'cm-codeblock-line cm-codeblock-start cm-codeblock-end';
+
+    const code = document.createElement('code');
+    if (this.language) {
+      code.className = `language-${this.language}`;
+    }
+
+    // Apply syntax highlighting using highlightjs-style classes
+    code.innerHTML = this.highlightCode(this.code, this.language);
+
+    pre.appendChild(code);
+    container.appendChild(pre);
+
+    return container;
+  }
+
+  private highlightCode(code: string, language: string): string {
+    // Simple syntax highlighting using regex patterns
+    // Escape HTML first
+    let escaped = code
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+
+    if (!language) {
+      return escaped;
+    }
+
+    // Apply syntax highlighting based on language
+    const langLower = language.toLowerCase();
+
+    // Common patterns for various languages
+    const patterns: { regex: RegExp, class: string }[] = [];
+
+    // Comments (single line)
+    if (['javascript', 'js', 'typescript', 'ts', 'java', 'c', 'cpp', 'csharp', 'cs', 'go', 'rust', 'swift', 'kotlin'].includes(langLower)) {
+      patterns.push({ regex: /(\/\/.*?)$/gm, class: 'cm-syntax-comment' });
+    }
+    if (['python', 'ruby', 'bash', 'sh', 'shell', 'yaml', 'yml'].includes(langLower)) {
+      patterns.push({ regex: /(#.*?)$/gm, class: 'cm-syntax-comment' });
+    }
+
+    // Strings
+    patterns.push({ regex: /("(?:[^"\\]|\\.)*")/g, class: 'cm-syntax-string' });
+    patterns.push({ regex: /('(?:[^'\\]|\\.)*')/g, class: 'cm-syntax-string' });
+    patterns.push({ regex: /(`(?:[^`\\]|\\.)*`)/g, class: 'cm-syntax-string' });
+
+    // Numbers
+    patterns.push({ regex: /\b(\d+\.?\d*)\b/g, class: 'cm-syntax-number' });
+
+    // Keywords based on language
+    let keywords: string[] = [];
+    if (['javascript', 'js', 'typescript', 'ts'].includes(langLower)) {
+      keywords = ['const', 'let', 'var', 'function', 'return', 'if', 'else', 'for', 'while', 'class', 'extends', 'import', 'export', 'from', 'default', 'async', 'await', 'try', 'catch', 'throw', 'new', 'this', 'super', 'static', 'public', 'private', 'protected', 'interface', 'type', 'enum', 'implements', 'readonly', 'abstract'];
+    } else if (['python'].includes(langLower)) {
+      keywords = ['def', 'class', 'if', 'elif', 'else', 'for', 'while', 'return', 'import', 'from', 'as', 'try', 'except', 'finally', 'with', 'lambda', 'yield', 'global', 'nonlocal', 'pass', 'break', 'continue', 'and', 'or', 'not', 'in', 'is', 'None', 'True', 'False', 'async', 'await'];
+    } else if (['java', 'kotlin'].includes(langLower)) {
+      keywords = ['public', 'private', 'protected', 'class', 'interface', 'extends', 'implements', 'static', 'final', 'void', 'int', 'long', 'double', 'float', 'boolean', 'char', 'byte', 'short', 'return', 'if', 'else', 'for', 'while', 'do', 'switch', 'case', 'break', 'continue', 'new', 'this', 'super', 'try', 'catch', 'finally', 'throw', 'throws', 'import', 'package'];
+    } else if (['rust'].includes(langLower)) {
+      keywords = ['fn', 'let', 'mut', 'const', 'static', 'struct', 'enum', 'impl', 'trait', 'pub', 'mod', 'use', 'return', 'if', 'else', 'for', 'while', 'loop', 'match', 'self', 'Self', 'super', 'crate', 'async', 'await', 'move', 'ref', 'where', 'type', 'dyn', 'unsafe'];
+    } else if (['go'].includes(langLower)) {
+      keywords = ['func', 'var', 'const', 'type', 'struct', 'interface', 'package', 'import', 'return', 'if', 'else', 'for', 'range', 'switch', 'case', 'default', 'break', 'continue', 'go', 'defer', 'select', 'chan', 'map', 'make', 'new', 'nil', 'true', 'false'];
+    } else if (['c', 'cpp', 'csharp', 'cs'].includes(langLower)) {
+      keywords = ['int', 'long', 'double', 'float', 'char', 'void', 'bool', 'return', 'if', 'else', 'for', 'while', 'do', 'switch', 'case', 'break', 'continue', 'struct', 'class', 'public', 'private', 'protected', 'static', 'const', 'extern', 'include', 'define', 'typedef', 'namespace', 'using', 'new', 'delete', 'this', 'virtual', 'override', 'template', 'typename'];
+    } else if (['bash', 'sh', 'shell'].includes(langLower)) {
+      keywords = ['if', 'then', 'else', 'elif', 'fi', 'for', 'while', 'do', 'done', 'case', 'esac', 'function', 'return', 'exit', 'export', 'local', 'readonly', 'shift', 'set', 'unset', 'source', 'alias', 'echo', 'cd', 'pwd', 'ls', 'cp', 'mv', 'rm', 'mkdir', 'chmod', 'chown', 'grep', 'sed', 'awk', 'cat', 'head', 'tail'];
+    } else if (['sql'].includes(langLower)) {
+      keywords = ['SELECT', 'FROM', 'WHERE', 'AND', 'OR', 'NOT', 'IN', 'LIKE', 'ORDER', 'BY', 'ASC', 'DESC', 'GROUP', 'HAVING', 'JOIN', 'LEFT', 'RIGHT', 'INNER', 'OUTER', 'ON', 'AS', 'INSERT', 'INTO', 'VALUES', 'UPDATE', 'SET', 'DELETE', 'CREATE', 'TABLE', 'DROP', 'ALTER', 'INDEX', 'PRIMARY', 'KEY', 'FOREIGN', 'REFERENCES', 'NULL', 'DISTINCT', 'COUNT', 'SUM', 'AVG', 'MAX', 'MIN', 'LIMIT', 'OFFSET', 'UNION'];
+    } else if (['html', 'xml'].includes(langLower)) {
+      keywords = [];
+      // Special handling for HTML tags
+      escaped = escaped.replace(/(&lt;\/?)([\w-]+)/g, '$1<span class="cm-syntax-keyword">$2</span>');
+      escaped = escaped.replace(/([\w-]+)(=)/g, '<span class="cm-syntax-function">$1</span>$2');
+    } else if (['css', 'scss', 'sass', 'less'].includes(langLower)) {
+      keywords = [];
+      // Properties
+      escaped = escaped.replace(/([\w-]+)(\s*:)/g, '<span class="cm-syntax-function">$1</span>$2');
+    } else if (['json'].includes(langLower)) {
+      keywords = ['true', 'false', 'null'];
+    } else if (['yaml', 'yml'].includes(langLower)) {
+      keywords = ['true', 'false', 'null', 'yes', 'no'];
+      // Keys
+      escaped = escaped.replace(/^(\s*)([\w-]+)(:)/gm, '$1<span class="cm-syntax-function">$2</span>$3');
+    }
+
+    // Apply keyword highlighting
+    if (keywords.length > 0) {
+      const keywordRegex = new RegExp(`\\b(${keywords.join('|')})\\b`, 'g');
+      patterns.push({ regex: keywordRegex, class: 'cm-syntax-keyword' });
+    }
+
+    // Apply patterns (in reverse order to avoid conflicts)
+    for (const pattern of patterns) {
+      escaped = escaped.replace(pattern.regex, `<span class="${pattern.class}">$1</span>`);
+    }
+
+    return escaped;
+  }
+
+  ignoreEvent() { return false; }
+}
+
 class BulletWidget extends WidgetType {
   toDOM() {
     const span = document.createElement('span');
@@ -734,14 +851,24 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
         const startLine = state.doc.lineAt(node.from);
         const endLine = state.doc.lineAt(node.to);
 
+        // Calculate indent for blockquote lines
+        // We need to find the indentation of the first line to apply to all lines
+        const firstLineText = state.sliceDoc(startLine.from, startLine.to);
+        const indentMatch = firstLineText.match(/^(\s*)/);
+        const indentSpaces = indentMatch ? indentMatch[1].length : 0;
+        // Calculate indent in pixels (approximately 0.5em per space, assuming ~16px font = 8px per space)
+        const indentPx = indentSpaces * 8;
+
         for (let i = startLine.number; i <= endLine.number; i++) {
           const line = state.doc.line(i);
           let className = `cm-blockquote-line cm-blockquote-level-${nestLevel}`;
           if (i === startLine.number) className += ' cm-blockquote-start';
           if (i === endLine.number) className += ' cm-blockquote-end';
 
+          // Apply line decoration with custom indent style
           decorations.push(Decoration.line({
-            class: className
+            class: className,
+            attributes: indentPx > 0 ? { style: `--blockquote-indent: ${indentPx}px` } : {}
           }).range(line.from));
         }
       }
@@ -755,8 +882,18 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
           parent = parent.parent;
         }
 
-        // Hide the > mark
-        decorations.push(Decoration.replace({}).range(node.from, node.to));
+        // Hide the > mark and any following space, plus leading indent spaces
+        const line = state.doc.lineAt(node.from);
+
+        // Calculate how much to hide: from line start (including indent) to after > and space
+        let hideEnd = node.to;
+        // Check if there's a space after the > mark
+        if (node.to < line.to && state.sliceDoc(node.to, node.to + 1) === ' ') {
+          hideEnd = node.to + 1;
+        }
+
+        // Hide from line start to after > and space (includes leading indent)
+        decorations.push(Decoration.replace({}).range(line.from, hideEnd));
       }
       else if (node.name === 'ListMark') {
         const text = state.sliceDoc(node.from, node.to);
@@ -945,8 +1082,9 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
           return false;
         }
 
-        // Standard code block handling (for non-mermaid or focused)
+        // Standard code block handling
         if (isFocused) {
+          // Focused: show all lines with styling for editing
           for (let i = startLine.number; i <= endLine.number; i++) {
             const line = state.doc.line(i);
             let className = 'cm-codeblock-line';
@@ -958,23 +1096,22 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
             }).range(line.from));
           }
         } else {
-          for (let i = startLine.number; i <= endLine.number; i++) {
+          // Not focused: replace entire block with widget (like Table/Mermaid)
+          // Extract code content (excluding fence lines)
+          let codeContent = '';
+          for (let i = startLine.number + 1; i < endLine.number; i++) {
             const line = state.doc.line(i);
-
-            if (i === startLine.number || i === endLine.number) {
-              decorations.push(Decoration.line({
-                attributes: { style: 'display: none' }
-              }).range(line.from));
-            } else {
-              let className = 'cm-codeblock-line';
-              if (i === startLine.number + 1) className += ' cm-codeblock-start';
-              if (i === endLine.number - 1) className += ' cm-codeblock-end';
-
-              decorations.push(Decoration.line({
-                class: className
-              }).range(line.from));
-            }
+            codeContent += state.sliceDoc(line.from, line.to) + '\n';
           }
+          // Remove trailing newline
+          if (codeContent.endsWith('\n')) {
+            codeContent = codeContent.slice(0, -1);
+          }
+
+          decorations.push(Decoration.replace({
+            widget: new CodeBlockWidget(codeContent, language)
+          }).range(node.from, node.to));
+          return false;
         }
       }
     }
