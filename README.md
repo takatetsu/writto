@@ -15,12 +15,13 @@ An inline Markdown editor built with Tauri, React, and TypeScript.
 
 Download the latest version from [GitHub Releases](https://github.com/takatetsu/writto/releases).
 
-Download the Windows installer (`.msi` or `.exe`).
+Download the Windows installer (`.exe`).
 
 ### Features
 
 - **Inline Rendering**: Hides Markdown syntax when not editing, displaying a preview-like view
-  - Improved blockquote rendering with continuous borders and nested quote support
+  - Improved blockquote rendering with text alignment on wrapped lines
+  - Code blocks display with proper line number alignment
 - **File Operations**: New, Open, Save, Save As
 - **Sidebar**: File tree and outline view
 - **Search & Replace**: Regex-supported search functionality
@@ -89,12 +90,13 @@ Tauri、React、TypeScript で構築された、インラインで動作する M
 
 最新版は [GitHub Releases](https://github.com/takatetsu/writto/releases) からダウンロードできます。
 
-Windows 版のインストーラー（`.msi` または `.exe`）をダウンロードしてください。
+Windows 版のインストーラー（`.exe`）をダウンロードしてください。
 
 ### 機能
 
 - **インラインレンダリング**: 編集していない Markdown 記法を隠し、プレビューのように表示します
-  - 引用ブロックの連続したバー表示とネスト対応、編集モードの改善
+  - 引用ブロックの折り返し時に文字開始位置を揃えて表示
+  - コードブロックの行番号との整合性を確保
 - **ファイル操作**: 新規作成、開く、保存、名前を付けて保存
 - **サイドバー**: ファイルツリーとアウトライン表示
 - **検索と置換**: 正規表現対応の検索機能
