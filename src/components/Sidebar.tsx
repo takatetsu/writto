@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { readDirectory, FileEntry, createFolder, createFile, renameFileOrFolder, deleteFileOrFolder, copyFileOrFolder, moveFileOrFolder } from '../lib/fs';
-import { FolderOpenIcon, FolderIcon, FolderShortcutIcon, FileIcon, ArrowUpIcon, EditIcon, CopyIcon, TrashIcon } from './Icons';
+import { FolderOpenIcon, FolderIcon, FolderShortcutIcon, FileIcon, ArrowUpIcon, ArrowLeftIcon, ArrowRightIcon, EditIcon, CopyIcon, TrashIcon } from './Icons';
 
 interface SidebarProps {
     onFileSelect: (path: string) => void;
@@ -37,6 +37,10 @@ const Sidebar: React.FC<SidebarProps> = ({ onFileSelect, doc, onNavigate, active
     // Drag and drop state
     const [draggedItem, setDraggedItem] = useState<{ path: string; name: string; isDirectory: boolean } | null>(null);
     const [dropTarget, setDropTarget] = useState<string | null>(null);
+
+    // Navigation history
+    const [historyStack, setHistoryStack] = useState<string[]>([]);
+    const [historyIndex, setHistoryIndex] = useState<number>(-1);
 
     // Adjust context menu position to stay within viewport
     useEffect(() => {
@@ -99,17 +103,46 @@ const Sidebar: React.FC<SidebarProps> = ({ onFileSelect, doc, onNavigate, active
 
 
 
-    const loadDirectory = async (path: string) => {
+    const loadDirectory = async (path: string, addToHistory: boolean = true) => {
         setCurrentPath(path);
         const entries = await readDirectory(path);
         setFiles(entries);
+
+        if (addToHistory) {
+            // Add to history, removing any forward history
+            setHistoryStack(prev => {
+                const newStack = prev.slice(0, historyIndex + 1);
+                newStack.push(path);
+                return newStack;
+            });
+            setHistoryIndex(prev => prev + 1);
+        }
     };
 
     useEffect(() => {
         if (activeFileDir) {
-            loadDirectory(activeFileDir);
+            loadDirectory(activeFileDir, true);
         }
     }, [activeFileDir]);
+
+    const canGoBack = historyIndex > 0;
+    const canGoForward = historyIndex < historyStack.length - 1;
+
+    const handleGoBack = () => {
+        if (canGoBack) {
+            const newIndex = historyIndex - 1;
+            setHistoryIndex(newIndex);
+            loadDirectory(historyStack[newIndex], false);
+        }
+    };
+
+    const handleGoForward = () => {
+        if (canGoForward) {
+            const newIndex = historyIndex + 1;
+            setHistoryIndex(newIndex);
+            loadDirectory(historyStack[newIndex], false);
+        }
+    };
 
     const handleDirClick = (path: string) => {
         loadDirectory(path);
@@ -393,11 +426,49 @@ const Sidebar: React.FC<SidebarProps> = ({ onFileSelect, doc, onNavigate, active
                                     color: 'var(--text-secondary)',
                                     borderBottom: '1px solid var(--border-light)',
                                     marginBottom: '5px',
-                                    whiteSpace: 'nowrap',
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis'
-                                }} title={currentPath}>
-                                    <FolderOpenIcon /> {currentPath.split(/[\\/]/).pop()}
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '4px'
+                                }}>
+                                    <span
+                                        onClick={(e) => { e.stopPropagation(); handleGoBack(); }}
+                                        style={{
+                                            cursor: canGoBack ? 'pointer' : 'default',
+                                            opacity: canGoBack ? 1 : 0.3,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            padding: '2px',
+                                            borderRadius: '3px',
+                                            transition: 'background-color 0.2s'
+                                        }}
+                                        title="戻る"
+                                    >
+                                        <ArrowLeftIcon />
+                                    </span>
+                                    <span
+                                        onClick={(e) => { e.stopPropagation(); handleGoForward(); }}
+                                        style={{
+                                            cursor: canGoForward ? 'pointer' : 'default',
+                                            opacity: canGoForward ? 1 : 0.3,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            padding: '2px',
+                                            borderRadius: '3px',
+                                            transition: 'background-color 0.2s'
+                                        }}
+                                        title="進む"
+                                    >
+                                        <ArrowRightIcon />
+                                    </span>
+                                    <span style={{
+                                        marginLeft: '4px',
+                                        whiteSpace: 'nowrap',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        flex: 1
+                                    }} title={currentPath}>
+                                        <FolderOpenIcon /> {currentPath.split(/[\\/]/).pop()}
+                                    </span>
                                 </div>
                                 <div
                                     style={{
