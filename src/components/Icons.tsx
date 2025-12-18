@@ -20,6 +20,17 @@ export const FolderIcon: React.FC<IconProps> = ({ className }) => (
     </span>
 );
 
+export const FolderShortcutIcon: React.FC<IconProps> = ({ className }) => (
+    <span className={`sidebar-icon ${className || ''}`}>
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            {/* フォルダ */}
+            <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" />
+            {/* ショートカット矢印（右下） */}
+            <path d="M20 19l-4-4h2.5v-3h-5v2h3v1l-4-4 4-4v1h-3v4h7v3h2.5l-4 4z" fill="white" transform="translate(-6, 2) scale(0.6)" />
+        </svg>
+    </span>
+);
+
 export const FileIcon: React.FC<IconProps> = ({ className }) => (
     <span className={`sidebar-icon ${className || ''}`}>
         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

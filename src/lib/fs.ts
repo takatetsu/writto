@@ -87,12 +87,20 @@ export async function saveFileAs(content: string): Promise<{ path: string } | nu
 }
 
 import { readDir } from '@tauri-apps/plugin-fs';
+import { invoke } from '@tauri-apps/api/core';
 
 export interface FileEntry {
   name: string;
   path: string;
   isDirectory: boolean;
+  isShortcut?: boolean;
+  shortcutTarget?: string;
   children?: FileEntry[];
+}
+
+interface ShortcutInfo {
+  target_path: string | null;
+  is_directory: boolean;
 }
 
 export async function readFileContent(path: string): Promise<string | null> {
@@ -107,24 +115,76 @@ export async function readFileContent(path: string): Promise<string | null> {
 export async function readDirectory(path: string): Promise<FileEntry[]> {
   try {
     const entries = await readDir(path);
-    // Sort directories first, then files
-    return entries
-      .filter(entry => entry.isDirectory || entry.name.endsWith('.md') || entry.name.endsWith('.txt')) // Filter for directories, markdown and text files
-      .map(entry => {
-        // Robust path joining
-        const separator = path.includes('\\') ? '\\' : '/';
-        const fullPath = path.endsWith(separator) ? path + entry.name : path + separator + entry.name;
+    const separator = path.includes('\\') ? '\\' : '/';
 
+    // First, create all entries including potential shortcuts
+    const rawEntries = entries
+      .filter(entry =>
+        entry.isDirectory ||
+        entry.name.endsWith('.md') ||
+        entry.name.endsWith('.txt') ||
+        entry.name.endsWith('.lnk')
+      )
+      .map(entry => {
+        const fullPath = path.endsWith(separator) ? path + entry.name : path + separator + entry.name;
         return {
           name: entry.name,
           path: fullPath,
           isDirectory: entry.isDirectory,
+          isLnk: entry.name.endsWith('.lnk'),
         };
-      })
-      .sort((a, b) => {
-        if (a.isDirectory === b.isDirectory) return a.name.localeCompare(b.name);
-        return a.isDirectory ? -1 : 1;
       });
+
+    // Process shortcuts to get their targets
+    const processedEntries: FileEntry[] = [];
+
+    for (const entry of rawEntries) {
+      if (entry.isLnk) {
+        try {
+          const shortcutInfo = await invoke<ShortcutInfo>('resolve_shortcut', { path: entry.path });
+          // Only include folder shortcuts (not software shortcuts)
+          if (shortcutInfo.is_directory && shortcutInfo.target_path) {
+            // Remove .lnk extension from display name
+            const displayName = entry.name.replace(/\.lnk$/i, '');
+            processedEntries.push({
+              name: displayName,
+              path: entry.path,
+              isDirectory: false,
+              isShortcut: true,
+              shortcutTarget: shortcutInfo.target_path,
+            });
+          }
+          // Skip non-folder shortcuts (software shortcuts)
+        } catch {
+          // Failed to resolve shortcut, skip it
+        }
+      } else {
+        processedEntries.push({
+          name: entry.name,
+          path: entry.path,
+          isDirectory: entry.isDirectory,
+        });
+      }
+    }
+
+    // Sort: directories first, then shortcuts, then files
+    return processedEntries.sort((a, b) => {
+      // Priority: directory (0) > shortcut (1) > file (2)
+      const getPriority = (e: FileEntry) => {
+        if (e.isDirectory) return 0;
+        if (e.isShortcut) return 1;
+        return 2;
+      };
+
+      const priorityA = getPriority(a);
+      const priorityB = getPriority(b);
+
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB;
+      }
+
+      return a.name.localeCompare(b.name);
+    });
   } catch (err) {
     console.error('Failed to read directory:', err);
     return [];

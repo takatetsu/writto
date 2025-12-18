@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { readDirectory, FileEntry, createFolder, createFile, renameFileOrFolder, deleteFileOrFolder, copyFileOrFolder, moveFileOrFolder } from '../lib/fs';
-import { FolderOpenIcon, FolderIcon, FileIcon, ArrowUpIcon, EditIcon, CopyIcon, TrashIcon } from './Icons';
+import { FolderOpenIcon, FolderIcon, FolderShortcutIcon, FileIcon, ArrowUpIcon, EditIcon, CopyIcon, TrashIcon } from './Icons';
 
 interface SidebarProps {
     onFileSelect: (path: string) => void;
@@ -451,7 +451,15 @@ const Sidebar: React.FC<SidebarProps> = ({ onFileSelect, doc, onNavigate, active
                                                 currentFilePath === file.path ? 'var(--sidebar-highlight)' : 'transparent',
                                             opacity: draggedItem?.path === file.path ? 0.5 : 1
                                         }}
-                                        onClick={() => file.isDirectory ? handleDirClick(file.path) : onFileSelect(file.path)}
+                                        onClick={() => {
+                                            if (file.isShortcut && file.shortcutTarget) {
+                                                handleDirClick(file.shortcutTarget);
+                                            } else if (file.isDirectory) {
+                                                handleDirClick(file.path);
+                                            } else {
+                                                onFileSelect(file.path);
+                                            }
+                                        }}
                                         onContextMenu={(e) => handleContextMenu(e, file.path, file.name, file.isDirectory)}
                                         onDragStart={(e) => handleDragStart(e, file.path, file.name, file.isDirectory)}
                                         onDragEnter={(e) => handleDragEnter(e, file.path, file.isDirectory)}
@@ -461,7 +469,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onFileSelect, doc, onNavigate, active
                                         onDragEnd={handleDragEnd}
                                         title={file.name}
                                     >
-                                        {file.isDirectory ? <FolderIcon /> : <FileIcon />}
+                                        {file.isShortcut ? <FolderShortcutIcon /> : file.isDirectory ? <FolderIcon /> : <FileIcon />}
                                         {file.name}
                                     </div>
                                 ))}
