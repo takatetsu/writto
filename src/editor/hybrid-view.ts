@@ -1,9 +1,10 @@
-import { RangeSet, StateField, EditorState, Facet, Range } from '@codemirror/state';
+import { RangeSet, StateField, EditorState, Facet, Range, StateEffect, Prec } from '@codemirror/state';
 import {
   Decoration,
   DecorationSet,
   EditorView,
-  WidgetType
+  WidgetType,
+  keymap
 } from '@codemirror/view';
 import { syntaxTree } from '@codemirror/language';
 import { readFile } from '@tauri-apps/plugin-fs';
@@ -21,6 +22,114 @@ mermaid.initialize({
 export const baseDirFacet = Facet.define<string, string>({
   combine: values => values[0] || ''
 });
+
+// Edit mode state management
+// Stores the line number that is currently in edit mode, or null if in view mode
+const setEditModeLine = StateEffect.define<number | null>();
+
+const editModeState = StateField.define<number | null>({
+  create: () => null,
+  update(value, tr) {
+    // Check for explicit edit mode change effects
+    for (const effect of tr.effects) {
+      if (effect.is(setEditModeLine)) {
+        return effect.value;
+      }
+    }
+    // If document changed and we're in edit mode, stay in edit mode on the same line
+    // If cursor moved to a different line via click, the click handler will update this
+    return value;
+  }
+});
+
+// Helper to check if a position is in edit mode
+function isInEditMode(state: EditorState, from: number, to: number): boolean {
+  const editLine = state.field(editModeState);
+  if (editLine === null) return false;
+
+  const nodeStartLine = state.doc.lineAt(from).number;
+  const nodeEndLine = state.doc.lineAt(to).number;
+
+  return editLine >= nodeStartLine && editLine <= nodeEndLine;
+}
+
+// Double-click handler to enter edit mode
+const editModeClickHandler = EditorView.domEventHandlers({
+  dblclick: (event, view) => {
+    const pos = view.posAtCoords({ x: event.clientX, y: event.clientY });
+    if (pos !== null) {
+      const line = view.state.doc.lineAt(pos).number;
+      view.dispatch({
+        effects: setEditModeLine.of(line)
+      });
+    }
+    return false; // Let default behavior (word selection) still happen
+  },
+  mousedown: (event, view) => {
+    // Single click: if clicking on a different line, move edit mode to that line
+    // But only if we're already in edit mode somewhere
+    if (event.detail === 1) { // single click
+      const currentEditLine = view.state.field(editModeState);
+      if (currentEditLine !== null) {
+        const pos = view.posAtCoords({ x: event.clientX, y: event.clientY });
+        if (pos !== null) {
+          const clickedLine = view.state.doc.lineAt(pos).number;
+          if (clickedLine !== currentEditLine) {
+            // Move edit mode to the clicked line
+            view.dispatch({
+              effects: setEditModeLine.of(clickedLine)
+            });
+          }
+        }
+      }
+    }
+    return false;
+  }
+});
+
+// Enter key handler to enter edit mode, Escape to exit
+// Use Prec.high to ensure this runs before the default Enter key handler
+const editModeKeymap = Prec.high(keymap.of([
+  {
+    key: "Enter",
+    run: (view) => {
+      const currentEditLine = view.state.field(editModeState);
+      const cursorLine = view.state.doc.lineAt(view.state.selection.main.head).number;
+
+      // If not in edit mode, enter edit mode
+      if (currentEditLine === null) {
+        view.dispatch({
+          effects: setEditModeLine.of(cursorLine)
+        });
+        return true; // Consume the event
+      }
+
+      // If in edit mode on this line, allow normal Enter (newline)
+      if (currentEditLine === cursorLine) {
+        return false; // Let the default newline behavior happen
+      }
+
+      // If in edit mode on different line, move edit mode to current line
+      view.dispatch({
+        effects: setEditModeLine.of(cursorLine)
+      });
+      return true;
+    }
+  },
+  {
+    key: "Escape",
+    run: (view) => {
+      const currentEditLine = view.state.field(editModeState);
+      if (currentEditLine !== null) {
+        view.dispatch({
+          effects: setEditModeLine.of(null)
+        });
+        return true; // Consume the event
+      }
+      return false;
+    }
+  }
+]));
 
 // Helper function to get MIME type from file extension
 function getMimeType(path: string): string {
@@ -792,13 +901,12 @@ class ImageWidget extends WidgetType {
 
 function computeHybridDecorations(state: EditorState): DecorationSet {
   const decorations: Range<Decoration>[] = [];
-  const selection = state.selection.main;
   const baseDir = state.facet(baseDirFacet);
 
   syntaxTree(state).iterate({
     enter: (node) => {
       if (node.name === 'StrongEmphasis' || node.name === 'Emphasis') {
-        if (selection.from >= node.from && selection.to <= node.to) return;
+        if (isInEditMode(state, node.from, node.to)) return;
 
         let c = node.node.cursor();
         c.firstChild();
@@ -809,7 +917,7 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
         } while (c.nextSibling());
       }
       else if (node.name.startsWith('ATXHeading')) {
-        if (selection.from >= node.from && selection.to <= node.to) return;
+        if (isInEditMode(state, node.from, node.to)) return;
 
         let c = node.node.cursor();
         c.firstChild();
@@ -827,14 +935,14 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
         } while (c.nextSibling());
       }
       else if (node.name === 'Blockquote') {
-        // Skip decoration if cursor is inside this blockquote or any ancestor blockquote (edit mode)
-        if (selection.from >= node.from && selection.to <= node.to) return;
+        // Skip decoration if in edit mode for this blockquote
+        if (isInEditMode(state, node.from, node.to)) return;
 
-        // Also check if any ancestor Blockquote contains the cursor
+        // Also check if any ancestor Blockquote is in edit mode
         let ancestorParent = node.node.parent;
         while (ancestorParent) {
-          if (ancestorParent.name === 'Blockquote' && selection.from >= ancestorParent.from && selection.to <= ancestorParent.to) {
-            return; // Edit mode - ancestor blockquote contains cursor
+          if (ancestorParent.name === 'Blockquote' && isInEditMode(state, ancestorParent.from, ancestorParent.to)) {
+            return; // Edit mode - ancestor blockquote in edit mode
           }
           ancestorParent = ancestorParent.parent;
         }
@@ -873,10 +981,10 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
         }
       }
       else if (node.name === 'QuoteMark') {
-        // Check if cursor is inside any ancestor Blockquote (edit mode for entire block including nested)
+        // Check if any ancestor Blockquote is in edit mode
         let parent = node.node.parent;
         while (parent) {
-          if (parent.name === 'Blockquote' && selection.from >= parent.from && selection.to <= parent.to) {
+          if (parent.name === 'Blockquote' && isInEditMode(state, parent.from, parent.to)) {
             return; // Edit mode for entire blockquote hierarchy
           }
           parent = parent.parent;
@@ -916,7 +1024,7 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
         }
       }
       else if (node.name === 'Image') {
-        if (selection.from >= node.from && selection.to <= node.to) return;
+        if (isInEditMode(state, node.from, node.to)) return;
 
         const text = state.sliceDoc(node.from, node.to);
         const match = text.match(/^!\[(.*?)\]\((.*?)(?:\s+"(.*?)")?\)/);
@@ -928,7 +1036,7 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
         }
       }
       else if (node.name === 'Link') {
-        if (selection.from >= node.from && selection.to <= node.to) return;
+        if (isInEditMode(state, node.from, node.to)) return;
 
         const text = state.sliceDoc(node.from, node.to);
         const match = text.match(/^\[(.*?)\]\((.*?)\)/);
@@ -941,7 +1049,7 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
       }
       // Handle Autolink format: <http://example.com>
       else if (node.name === 'Autolink') {
-        if (selection.from >= node.from && selection.to <= node.to) return;
+        if (isInEditMode(state, node.from, node.to)) return;
 
         const text = state.sliceDoc(node.from, node.to);
         // Remove angle brackets from autolink
@@ -955,7 +1063,7 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
       }
       // Handle plain URLs (URL node from GFM)
       else if (node.name === 'URL') {
-        if (selection.from >= node.from && selection.to <= node.to) return;
+        if (isInEditMode(state, node.from, node.to)) return;
 
         const url = state.sliceDoc(node.from, node.to);
         if (url.match(/^https?:\/\//)) {
@@ -966,7 +1074,7 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
         }
       }
       else if (node.name === 'Table') {
-        if (selection.from >= node.from && selection.to <= node.to) return;
+        if (isInEditMode(state, node.from, node.to)) return;
         if (node.to <= node.from) return;
 
         const tableData: TableData = {
@@ -1043,7 +1151,7 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
         return false;
       }
       else if (node.name === 'InlineCode') {
-        if (selection.from >= node.from && selection.to <= node.to) return;
+        if (isInEditMode(state, node.from, node.to)) return;
 
         let c = node.node.cursor();
         c.firstChild();
@@ -1062,10 +1170,10 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
         const langMatch = firstLineText.match(/^```(\w+)/);
         const language = langMatch ? langMatch[1].toLowerCase() : '';
 
-        const isFocused = selection.from >= node.from && selection.to <= node.to;
+        const isEditMode = isInEditMode(state, node.from, node.to);
 
         // Special handling for Mermaid code blocks
-        if (language === 'mermaid' && !isFocused) {
+        if (language === 'mermaid' && !isEditMode) {
           // Extract the mermaid code (excluding fence lines)
           let mermaidCode = '';
           for (let i = startLine.number + 1; i < endLine.number; i++) {
@@ -1083,7 +1191,7 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
         }
 
         // Standard code block handling
-        if (isFocused) {
+        if (isEditMode) {
           // Focused: show all lines with styling for editing
           for (let i = startLine.number; i <= endLine.number; i++) {
             const line = state.doc.line(i);
@@ -1126,8 +1234,8 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
     const from = match.index;
     const to = from + match[0].length;
 
-    // Skip if cursor is inside this details block (edit mode)
-    if (selection.from >= from && selection.to <= to) continue;
+    // Skip if in edit mode for this details block
+    if (isInEditMode(state, from, to)) continue;
 
     const summaryText = match[1].trim();
     const contentText = match[2].trim();
@@ -1141,15 +1249,25 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
   return RangeSet.of(decorations, true);
 }
 
-export const hybridView = StateField.define<DecorationSet>({
+// StateField for hybrid decorations
+const hybridViewField = StateField.define<DecorationSet>({
   create(state) {
     return computeHybridDecorations(state);
   },
   update(decorations, tr) {
-    if (tr.docChanged || tr.selection || tr.state.facet(baseDirFacet) !== tr.startState.facet(baseDirFacet)) {
+    // Also update when edit mode changes
+    if (tr.docChanged || tr.selection || tr.state.facet(baseDirFacet) !== tr.startState.facet(baseDirFacet) || tr.effects.some(e => e.is(setEditModeLine))) {
       return computeHybridDecorations(tr.state);
     }
     return decorations;
   },
   provide: field => EditorView.decorations.from(field)
 });
+
+// Export the combined extensions
+export const hybridView = [
+  editModeState,
+  editModeClickHandler,
+  editModeKeymap,
+  hybridViewField
+];
