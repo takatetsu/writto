@@ -22,6 +22,12 @@ Download the Windows installer (`.exe`).
 - **Inline Rendering**: Hides Markdown syntax when not editing, displaying a preview-like view
   - Improved blockquote rendering with text alignment on wrapped lines
   - Code blocks display with proper line number alignment
+- **View/Edit Mode Switching**: Seamlessly switch between reading and editing
+  - **View Mode**: Click to move cursor without entering edit mode
+  - **Edit Mode Entry**: Double-click or press Enter to start editing
+  - **Edit Mode Exit**: Press Escape to return to view mode
+  - Visual indicator (blue background and left border) shows current edit location
+- **Code Block Copy**: One-click code copying with visual feedback
 - **File Operations**: New, Open, Save, Save As
 - **Sidebar**: File tree and outline view
 - **Search & Replace**: Regex-supported search functionality
@@ -97,6 +103,12 @@ Windows 版のインストーラー（`.exe`）をダウンロードしてくだ
 - **インラインレンダリング**: 編集していない Markdown 記法を隠し、プレビューのように表示します
   - 引用ブロックの折り返し時に文字開始位置を揃えて表示
   - コードブロックの行番号との整合性を確保
+- **表示/編集モードの切り替え**: 読みやすさと編集しやすさを両立
+  - **表示モード**: クリックでカーソル移動のみ、編集モードにはなりません
+  - **編集モードへの切り替え**: ダブルクリックまたはEnterキーで編集開始
+  - **編集モードの終了**: Escキーで表示モードに戻る
+  - 現在の編集位置は青い背景と左側のバーで視覚的に表示
+- **コードブロックのコピー**: ワンクリックでコードをコピー、視覚的なフィードバック付き
 - **ファイル操作**: 新規作成、開く、保存、名前を付けて保存
 - **サイドバー**: ファイルツリーとアウトライン表示
 - **検索と置換**: 正規表現対応の検索機能
