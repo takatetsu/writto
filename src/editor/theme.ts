@@ -31,6 +31,13 @@ export const baseTheme = EditorView.theme({
   '.cm-activeLine': {
     backgroundColor: 'var(--bg-tertiary)',
   },
+  // Edit mode line indicator
+  '.cm-edit-mode-line': {
+    backgroundColor: 'var(--edit-mode-bg, rgba(59, 130, 246, 0.1))',
+    borderLeft: '3px solid var(--edit-mode-border, #3b82f6)',
+    marginLeft: '-3px',
+    paddingLeft: '3px',
+  },
   // Headers
   '.cm-header-1': { fontSize: '2em', fontWeight: 'bold', borderBottom: '1px solid var(--border-light)', marginBottom: '0.5em' },
   '.cm-header-2': { fontSize: '1.5em', fontWeight: 'bold', borderBottom: '1px solid var(--border-light)', marginBottom: '0.5em' },

@@ -97,7 +97,7 @@ const editModeKeymap = Prec.high(keymap.of([
       const currentEditLine = view.state.field(editModeState);
       const cursorLine = view.state.doc.lineAt(view.state.selection.main.head).number;
 
-      // If not in edit mode, enter edit mode
+      // If not in edit mode, enter edit mode on current line
       if (currentEditLine === null) {
         view.dispatch({
           effects: setEditModeLine.of(cursorLine)
@@ -105,16 +105,15 @@ const editModeKeymap = Prec.high(keymap.of([
         return true; // Consume the event
       }
 
-      // If in edit mode on this line, allow normal Enter (newline)
-      if (currentEditLine === cursorLine) {
-        return false; // Let the default newline behavior happen
-      }
-
-      // If in edit mode on different line, move edit mode to current line
-      view.dispatch({
-        effects: setEditModeLine.of(cursorLine)
-      });
-      return true;
+      // If in edit mode, allow normal Enter (newline) and update edit mode to follow cursor
+      // We need to let the default handler run first, then update the edit mode line
+      setTimeout(() => {
+        const newCursorLine = view.state.doc.lineAt(view.state.selection.main.head).number;
+        view.dispatch({
+          effects: setEditModeLine.of(newCursorLine)
+        });
+      }, 0);
+      return false; // Let the default newline behavior happen
     }
   },
   {
@@ -950,6 +949,15 @@ class ImageWidget extends WidgetType {
 function computeHybridDecorations(state: EditorState): DecorationSet {
   const decorations: Range<Decoration>[] = [];
   const baseDir = state.facet(baseDirFacet);
+
+  // Add visual indicator for edit mode line
+  const editLine = state.field(editModeState);
+  if (editLine !== null && editLine >= 1 && editLine <= state.doc.lines) {
+    const line = state.doc.line(editLine);
+    decorations.push(Decoration.line({
+      class: 'cm-edit-mode-line'
+    }).range(line.from));
+  }
 
   syntaxTree(state).iterate({
     enter: (node) => {
