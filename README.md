@@ -35,6 +35,7 @@ Download the Windows installer (`.exe`).
 - **Print**: Print and save as PDF
 - **Settings**: Customizable font size, font family, and editor width (50%-100%)
 - **Table Support**: GFM-compliant table rendering with alignment support
+  - **Table Editing**: Insert tables via context menu, add/delete rows and columns
 - **Mermaid Diagrams**: Support for Mermaid diagram rendering
 - **Line Numbers**: Toggle line numbers display
 - **Word Wrap**: Toggle word wrap
@@ -116,6 +117,7 @@ Windows 版のインストーラー（`.exe`）をダウンロードしてくだ
 - **印刷**: 印刷および PDF 保存
 - **設定**: フォントサイズ、フォントファミリー、エディタ幅（50%-100%）の変更
 - **テーブルサポート**: GFM準拠のテーブルレンダリング（配置対応）
+  - **テーブル編集**: 右クリックメニューで表の挿入、行/列の追加・削除
 - **Mermaid**: Mermaid図のレンダリング対応
 - **行番号**: 行番号の表示切り替え
 - **ワードラップ**: ワードラップの切り替え

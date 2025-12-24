@@ -71,6 +71,25 @@ export const translations = {
         'codeblock.copyTooltip': 'コードをクリップボードにコピー',
         'codeblock.error': 'エラー',
 
+        // Table
+        'table.insert': '表を挿入',
+        'table.rows': '行数',
+        'table.columns': '列数',
+        'table.insertTitle': '表の挿入',
+        'table.cancel': 'キャンセル',
+        'table.addRowAbove': '上に行を追加',
+        'table.addRowBelow': '下に行を追加',
+        'table.addColumnLeft': '左に列を追加',
+        'table.addColumnRight': '右に列を追加',
+        'table.deleteRow': '行を削除',
+        'table.deleteColumn': '列を削除',
+
+        // Context Menu - Standard
+        'context.cut': '切り取り',
+        'context.copy': 'コピー',
+        'context.paste': '貼り付け',
+        'context.selectAll': 'すべて選択',
+
         // Update Dialog
         'update.available': '新しいバージョンが利用可能です',
         'update.current': '現在のバージョン',
@@ -150,6 +169,25 @@ export const translations = {
         'codeblock.copied': 'Copied!',
         'codeblock.copyTooltip': 'Copy code to clipboard',
         'codeblock.error': 'Error',
+
+        // Table
+        'table.insert': 'Insert Table',
+        'table.rows': 'Rows',
+        'table.columns': 'Columns',
+        'table.insertTitle': 'Insert Table',
+        'table.cancel': 'Cancel',
+        'table.addRowAbove': 'Add Row Above',
+        'table.addRowBelow': 'Add Row Below',
+        'table.addColumnLeft': 'Add Column Left',
+        'table.addColumnRight': 'Add Column Right',
+        'table.deleteRow': 'Delete Row',
+        'table.deleteColumn': 'Delete Column',
+
+        // Context Menu - Standard
+        'context.cut': 'Cut',
+        'context.copy': 'Copy',
+        'context.paste': 'Paste',
+        'context.selectAll': 'Select All',
 
         // Update Dialog
         'update.available': 'A new version is available',

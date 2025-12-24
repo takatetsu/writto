@@ -1,15 +1,27 @@
 import { WidgetType } from '@codemirror/view';
+import { getInitialLanguage, translations } from '../lib/i18n';
 
 export interface TableData {
     headers: string[];
     rows: string[][];
     alignments: ('left' | 'center' | 'right' | null)[];
+    // Position in the document for table manipulation
+    from?: number;
+    to?: number;
+}
+
+// Custom event for table operations
+export interface TableOperationEvent {
+    operation: 'addRowAbove' | 'addRowBelow' | 'addColumnLeft' | 'addColumnRight' | 'deleteRow' | 'deleteColumn';
+    rowIndex: number;
+    colIndex: number;
+    from: number;
+    to: number;
 }
 
 export class TableWidget extends WidgetType {
     constructor(readonly data: TableData) {
         super();
-        // console.log('TableWidget created', data); // Debug logging
     }
 
     eq(other: TableWidget) {
@@ -25,26 +37,42 @@ export class TableWidget extends WidgetType {
 
     toDOM() {
         try {
+            const lang = getInitialLanguage();
+            const t = translations[lang];
+
+            const container = document.createElement('div');
+            container.className = 'cm-table-container';
+            container.style.position = 'relative';
+
             const table = document.createElement('table');
             table.className = 'cm-md-table';
             table.style.borderCollapse = 'collapse';
             table.style.width = '100%';
             table.style.marginBottom = '1em';
             table.style.border = '1px solid var(--border-color, #ddd)';
-            // Prevent layout thrashing by setting a min-height or similar if needed
-            // table.style.contain = 'content'; // might help performance
 
             // Header
             const thead = document.createElement('thead');
             const headerRow = document.createElement('tr');
             headerRow.style.backgroundColor = 'var(--table-header-bg, #f5f5f5)';
 
-            this.data.headers.forEach((headerText, i) => {
+            this.data.headers.forEach((headerText, colIndex) => {
                 const th = document.createElement('th');
-                th.textContent = headerText;
+                th.textContent = headerText.trim() || ' ';
                 th.style.padding = '8px 12px';
                 th.style.border = '1px solid var(--border-color, #ddd)';
-                th.style.textAlign = this.data.alignments[i] || 'left';
+                th.style.textAlign = this.data.alignments[colIndex] || 'left';
+                th.style.minWidth = '40px';
+                th.dataset.row = '-1'; // Header row
+                th.dataset.col = colIndex.toString();
+                // Mark empty cells
+                if (!headerText.trim()) {
+                    th.style.backgroundColor = 'var(--table-empty-cell, rgba(0,0,0,0.03))';
+                }
+
+                // Add context menu handler
+                th.addEventListener('contextmenu', (e) => this.handleContextMenu(e, -1, colIndex, container, t));
+
                 headerRow.appendChild(th);
             });
             thead.appendChild(headerRow);
@@ -58,20 +86,32 @@ export class TableWidget extends WidgetType {
                     tr.style.backgroundColor = 'var(--table-row-alt-bg, #fafafa)';
                 }
 
-                row.forEach((cellText, i) => {
+                row.forEach((cellText, colIndex) => {
                     const td = document.createElement('td');
-                    td.textContent = cellText;
+                    td.textContent = cellText.trim() || '\u00A0'; // Use non-breaking space for empty cells
                     td.style.padding = '8px 12px';
                     td.style.border = '1px solid var(--border-color, #ddd)';
-                    const align = this.data.alignments[i] || 'left';
+                    const align = this.data.alignments[colIndex] || 'left';
                     td.style.textAlign = align;
+                    td.style.minWidth = '40px';
+                    td.dataset.row = rowIndex.toString();
+                    td.dataset.col = colIndex.toString();
+                    // Mark empty cells
+                    if (!cellText.trim()) {
+                        td.style.backgroundColor = 'var(--table-empty-cell, rgba(0,0,0,0.03))';
+                    }
+
+                    // Add context menu handler
+                    td.addEventListener('contextmenu', (e) => this.handleContextMenu(e, rowIndex, colIndex, container, t));
+
                     tr.appendChild(td);
                 });
                 tbody.appendChild(tr);
             });
             table.appendChild(tbody);
+            container.appendChild(table);
 
-            return table;
+            return container;
         } catch (e) {
             console.error('Error rendering TableWidget:', e);
             const span = document.createElement('span');
@@ -79,6 +119,139 @@ export class TableWidget extends WidgetType {
             span.style.color = 'red';
             return span;
         }
+    }
+
+    private handleContextMenu(
+        e: MouseEvent,
+        rowIndex: number,
+        colIndex: number,
+        container: HTMLElement,
+        t: Record<string, string>
+    ) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Remove any existing context menu
+        const existingMenu = document.querySelector('.cm-table-context-menu');
+        if (existingMenu) existingMenu.remove();
+
+        // Create context menu
+        const menu = document.createElement('div');
+        menu.className = 'cm-table-context-menu';
+        menu.style.cssText = `
+            position: fixed;
+            left: ${e.clientX}px;
+            top: ${e.clientY}px;
+            background-color: var(--bg-primary, #fff);
+            border: 1px solid var(--border-color, #ddd);
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 10001;
+            padding: 4px 0;
+            min-width: 160px;
+        `;
+
+        const menuItems: Array<{ label?: string; operation?: string; type?: string }> = [
+            { label: t['table.addRowAbove'], operation: 'addRowAbove' },
+            { label: t['table.addRowBelow'], operation: 'addRowBelow' },
+            { type: 'separator' },
+            { label: t['table.addColumnLeft'], operation: 'addColumnLeft' },
+            { label: t['table.addColumnRight'], operation: 'addColumnRight' },
+        ];
+
+        // Add delete options if table has more than 1 row/column
+        if (this.data.rows.length > 1 || rowIndex === -1) {
+            menuItems.push({ type: 'separator' });
+            if (rowIndex >= 0 && this.data.rows.length > 1) {
+                menuItems.push({ label: t['table.deleteRow'], operation: 'deleteRow' });
+            }
+            if (this.data.headers.length > 1) {
+                menuItems.push({ label: t['table.deleteColumn'], operation: 'deleteColumn' });
+            }
+        }
+
+        menuItems.forEach(item => {
+            if (item.type === 'separator') {
+                const separator = document.createElement('div');
+                separator.style.cssText = `
+                    height: 1px;
+                    background-color: var(--border-color, #ddd);
+                    margin: 4px 0;
+                `;
+                menu.appendChild(separator);
+            } else {
+                const button = document.createElement('button');
+                button.textContent = item.label || '';
+                button.style.cssText = `
+                    display: block;
+                    width: 100%;
+                    padding: 8px 16px;
+                    border: none;
+                    background-color: transparent;
+                    color: var(--text-primary, #333);
+                    text-align: left;
+                    cursor: pointer;
+                    font-size: 0.9em;
+                `;
+
+                button.addEventListener('mouseenter', () => {
+                    button.style.backgroundColor = 'var(--hover-bg, #f0f0f0)';
+                });
+                button.addEventListener('mouseleave', () => {
+                    button.style.backgroundColor = 'transparent';
+                });
+
+                button.addEventListener('click', () => {
+                    const op = item.operation!;
+                    menu.remove();
+                    // Use setTimeout to ensure menu is fully removed before dispatching
+                    setTimeout(() => {
+                        this.dispatchTableOperation(op, rowIndex, colIndex, container);
+                    }, 0);
+                }, { once: true });
+
+                menu.appendChild(button);
+            }
+        });
+
+        document.body.appendChild(menu);
+
+        // Adjust position if menu goes off screen
+        const menuRect = menu.getBoundingClientRect();
+        if (menuRect.right > window.innerWidth) {
+            menu.style.left = `${window.innerWidth - menuRect.width - 10}px`;
+        }
+        if (menuRect.bottom > window.innerHeight) {
+            menu.style.top = `${window.innerHeight - menuRect.height - 10}px`;
+        }
+
+        // Close menu when clicking outside
+        const closeMenu = (event: MouseEvent) => {
+            if (!menu.contains(event.target as Node)) {
+                menu.remove();
+                document.removeEventListener('click', closeMenu);
+            }
+        };
+        setTimeout(() => document.addEventListener('click', closeMenu), 0);
+    }
+
+    private dispatchTableOperation(
+        operation: string,
+        rowIndex: number,
+        colIndex: number,
+        container: HTMLElement
+    ) {
+        const event = new CustomEvent<TableOperationEvent>('table-operation', {
+            bubbles: true,
+            detail: {
+                operation: operation as TableOperationEvent['operation'],
+                rowIndex,
+                colIndex,
+                from: this.data.from || 0,
+                to: this.data.to || 0
+            }
+        });
+        container.dispatchEvent(event);
     }
 
     ignoreEvent() { return false; }

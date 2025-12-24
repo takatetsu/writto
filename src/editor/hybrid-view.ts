@@ -1130,26 +1130,27 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
         }
       }
       else if (node.name === 'Table') {
+        // Skip if in edit mode
         if (isInEditMode(state, node.from, node.to)) return;
-        if (node.to <= node.from) return;
 
+        // Parse the table data
         const tableData: TableData = {
           headers: [],
           rows: [],
-          alignments: []
+          alignments: [],
+          from: node.from,
+          to: node.to
         };
 
         let cursor = node.node.cursor();
         if (cursor.firstChild()) {
           if (cursor.name === 'TableHeader') {
-            let headerCursor = cursor.node.cursor();
-            if (headerCursor.firstChild()) {
-              do {
-                if (headerCursor.name === 'TableCell') {
-                  tableData.headers.push(state.sliceDoc(headerCursor.from, headerCursor.to));
-                }
-              } while (headerCursor.nextSibling());
-            }
+            // Parse header text manually to capture empty cells
+            const headerText = state.sliceDoc(cursor.from, cursor.to);
+            const trimmed = headerText.trim();
+            const inner = trimmed.startsWith('|') ? trimmed.slice(1) : trimmed;
+            const final = inner.endsWith('|') ? inner.slice(0, -1) : inner;
+            tableData.headers = final.split('|').map(cell => cell.trim());
           }
 
           let child = node.node.firstChild;
@@ -1182,19 +1183,22 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
           child = node.node.firstChild;
           while (child) {
             if (child.name === 'TableRow') {
-              const row: string[] = [];
-              let cellCursor = child.cursor();
-              if (cellCursor.firstChild()) {
-                do {
-                  if (cellCursor.name === 'TableCell') {
-                    row.push(state.sliceDoc(cellCursor.from, cellCursor.to));
-                  }
-                } while (cellCursor.nextSibling());
-              }
+              // Parse row text manually to capture empty cells that Lezer doesn't recognize
+              const rowText = state.sliceDoc(child.from, child.to);
+              const row = parseTableRow(rowText);
               tableData.rows.push(row);
             }
             child = child.nextSibling;
           }
+        }
+
+        // Helper function to parse a table row text into cells
+        function parseTableRow(text: string): string[] {
+          const trimmed = text.trim();
+          // Remove leading and trailing |
+          const inner = trimmed.startsWith('|') ? trimmed.slice(1) : trimmed;
+          const final = inner.endsWith('|') ? inner.slice(0, -1) : inner;
+          return final.split('|').map(cell => cell.trim());
         }
 
         try {
