@@ -1,3 +1,5 @@
+![Developed with Vibe Coding](./docs/Developed_with-Vibe_Coding-blueviolet.svg)
+
 # Writto
 
 [English](#english) | [日本語](#japanese)
