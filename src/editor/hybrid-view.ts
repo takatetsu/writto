@@ -37,6 +37,11 @@ const editModeState = StateField.define<number | null>({
         return effect.value;
       }
     }
+    // If in edit mode and selection changed, update to follow cursor
+    if (value !== null && tr.selection) {
+      const cursorLine = tr.state.doc.lineAt(tr.state.selection.main.head).number;
+      return cursorLine;
+    }
     // If document changed and we're in edit mode, stay in edit mode on the same line
     // If cursor moved to a different line via click, the click handler will update this
     return value;
