@@ -65,6 +65,12 @@ export const translations = {
         // Link Widget
         'link.ctrlClick': 'Ctrl+クリックでリンク先へ移動',
 
+        // Code Block
+        'codeblock.copy': 'コピー',
+        'codeblock.copied': 'コピー完了！',
+        'codeblock.copyTooltip': 'コードをクリップボードにコピー',
+        'codeblock.error': 'エラー',
+
         // Update Dialog
         'update.available': '新しいバージョンが利用可能です',
         'update.current': '現在のバージョン',
@@ -138,6 +144,12 @@ export const translations = {
 
         // Link Widget
         'link.ctrlClick': 'Ctrl+Click to follow link',
+
+        // Code Block
+        'codeblock.copy': 'Copy',
+        'codeblock.copied': 'Copied!',
+        'codeblock.copyTooltip': 'Copy code to clipboard',
+        'codeblock.error': 'Error',
 
         // Update Dialog
         'update.available': 'A new version is available',

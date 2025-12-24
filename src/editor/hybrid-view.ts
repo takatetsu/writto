@@ -10,6 +10,7 @@ import { syntaxTree } from '@codemirror/language';
 import { readFile } from '@tauri-apps/plugin-fs';
 import { open as shellOpen } from '@tauri-apps/plugin-shell';
 import { TableWidget, TableData } from './table-widget';
+import { getInitialLanguage, translations } from '../lib/i18n';
 import mermaid from 'mermaid';
 
 // Initialize mermaid with default settings
@@ -584,6 +585,53 @@ class CodeBlockWidget extends WidgetType {
   toDOM() {
     const container = document.createElement('div');
     container.className = 'cm-codeblock-widget';
+
+    // Header with language label and copy button
+    const header = document.createElement('div');
+    header.className = 'cm-codeblock-header';
+
+    // Language label
+    if (this.language) {
+      const langLabel = document.createElement('span');
+      langLabel.className = 'cm-codeblock-lang';
+      langLabel.textContent = this.language;
+      header.appendChild(langLabel);
+    }
+
+    // Copy button with i18n support
+    const lang = getInitialLanguage();
+    const copyText = translations[lang]['codeblock.copy'];
+    const copiedText = translations[lang]['codeblock.copied'];
+    const tooltipText = translations[lang]['codeblock.copyTooltip'];
+    const errorText = translations[lang]['codeblock.error'];
+
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'cm-codeblock-copy-btn';
+    copyBtn.textContent = copyText;
+    copyBtn.title = tooltipText;
+
+    const codeText = this.code;
+    copyBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      try {
+        await navigator.clipboard.writeText(codeText);
+        copyBtn.textContent = copiedText;
+        copyBtn.classList.add('cm-codeblock-copy-success');
+        setTimeout(() => {
+          copyBtn.textContent = copyText;
+          copyBtn.classList.remove('cm-codeblock-copy-success');
+        }, 2000);
+      } catch (err) {
+        console.error('Failed to copy code:', err);
+        copyBtn.textContent = errorText;
+        setTimeout(() => {
+          copyBtn.textContent = copyText;
+        }, 2000);
+      }
+    });
+    header.appendChild(copyBtn);
+    container.appendChild(header);
 
     const pre = document.createElement('pre');
     pre.className = 'cm-codeblock-line cm-codeblock-start cm-codeblock-end';
