@@ -101,6 +101,19 @@ export const baseTheme = EditorView.theme({
   '.cm-table-head': { fontWeight: 'bold', borderBottom: '2px solid var(--border-color)', backgroundColor: 'var(--bg-secondary)' },
   '.cm-table-row': { borderBottom: '1px solid var(--border-light)' },
   '.cm-table-cell': { padding: '8px', border: '1px solid var(--border-color)' },
+  // Markdown table widget inline styles
+  '.cm-md-table code': {
+    fontFamily: 'ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace',
+    fontSize: '0.9em',
+    backgroundColor: 'var(--bg-tertiary)',
+    padding: '2px 4px',
+    borderRadius: '3px',
+  },
+  '.cm-md-table mark': {
+    backgroundColor: 'rgba(255, 230, 0, 0.4)',
+    padding: '0 2px',
+    borderRadius: '2px',
+  },
 
   // Code Block
   '.cm-codeblock-line': {
@@ -338,6 +351,151 @@ export const baseTheme = EditorView.theme({
     whiteSpace: 'pre-wrap',
     wordBreak: 'break-word',
   },
+
+  // HTML Widget - for rendering HTML content
+  '.cm-html-widget': {
+    display: 'block',
+    margin: '0.5em 0',
+    lineHeight: '1.6',
+    color: 'var(--text-primary)',
+  },
+  // HTML Widget - headings
+  '.cm-html-widget h1': {
+    fontSize: '2em',
+    fontWeight: 'bold',
+    margin: '0.67em 0',
+    borderBottom: '1px solid var(--border-light)',
+  },
+  '.cm-html-widget h2': {
+    fontSize: '1.5em',
+    fontWeight: 'bold',
+    margin: '0.83em 0',
+    borderBottom: '1px solid var(--border-light)',
+  },
+  '.cm-html-widget h3': {
+    fontSize: '1.25em',
+    fontWeight: 'bold',
+    margin: '1em 0',
+  },
+  '.cm-html-widget h4, .cm-html-widget h5, .cm-html-widget h6': {
+    fontSize: '1em',
+    fontWeight: 'bold',
+    margin: '1.33em 0',
+  },
+  // HTML Widget - paragraphs and blocks
+  '.cm-html-widget p': {
+    margin: '0.5em 0',
+  },
+  '.cm-html-widget div': {
+    margin: '0.25em 0',
+  },
+  '.cm-html-widget blockquote': {
+    margin: '0.5em 0',
+    paddingLeft: '1em',
+    borderLeft: '4px solid var(--blockquote-border, #d0d7de)',
+    color: 'var(--text-secondary)',
+  },
+  '.cm-html-widget pre': {
+    backgroundColor: 'var(--bg-tertiary)',
+    borderRadius: '6px',
+    padding: '12px 16px',
+    overflow: 'auto',
+    margin: '0.5em 0',
+    fontFamily: 'ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace',
+  },
+  '.cm-html-widget code': {
+    fontFamily: 'ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace',
+    fontSize: '0.9em',
+    backgroundColor: 'var(--bg-tertiary)',
+    padding: '2px 4px',
+    borderRadius: '3px',
+  },
+  '.cm-html-widget pre code': {
+    backgroundColor: 'transparent',
+    padding: '0',
+  },
+  // HTML Widget - lists (match Markdown list spacing exactly)
+  '.cm-html-widget ul, .cm-html-widget ol': {
+    margin: '0',
+    padding: '0',
+    paddingLeft: '1.9em',
+    lineHeight: '1.6',
+    listStylePosition: 'outside',
+  },
+  '.cm-html-widget li': {
+    margin: '0',
+    padding: '0',
+    lineHeight: '1.6',
+  },
+  '.cm-html-widget ul li': {
+    listStyleType: 'disc',
+  },
+  '.cm-html-widget ol li': {
+    listStyleType: 'decimal',
+  },
+  '.cm-html-widget dl': {
+    margin: '0',
+  },
+  '.cm-html-widget dt': {
+    fontWeight: 'bold',
+  },
+  '.cm-html-widget dd': {
+    marginLeft: '2em',
+  },
+  // HTML Widget - tables
+  '.cm-html-widget table': {
+    borderCollapse: 'collapse',
+    width: '100%',
+    margin: '0.5em 0',
+  },
+  '.cm-html-widget th, .cm-html-widget td': {
+    border: '1px solid var(--border-color)',
+    padding: '8px 12px',
+    textAlign: 'left',
+  },
+  '.cm-html-widget th': {
+    backgroundColor: 'var(--bg-secondary)',
+    fontWeight: 'bold',
+  },
+  '.cm-html-widget thead': {
+    backgroundColor: 'var(--bg-secondary)',
+  },
+  '.cm-html-widget tr:nth-child(even)': {
+    backgroundColor: 'var(--bg-tertiary)',
+  },
+  // HTML Widget - inline elements
+  '.cm-html-widget a': {
+    color: '#58a6ff',
+    textDecoration: 'underline',
+    cursor: 'pointer',
+  },
+  '.cm-html-widget a:hover': {
+    textDecoration: 'none',
+  },
+  '.cm-html-widget mark': {
+    backgroundColor: 'rgba(255, 230, 0, 0.4)',
+    padding: '0 2px',
+    borderRadius: '2px',
+  },
+  '.cm-html-widget hr': {
+    border: 'none',
+    borderTop: '2px solid var(--border-color)',
+    margin: '1em 0',
+  },
+  // HTML Widget - images
+  '.cm-html-widget img': {
+    maxWidth: '100%',
+    height: 'auto',
+  },
+  '.cm-html-widget figure': {
+    margin: '1em 0',
+    textAlign: 'center',
+  },
+  '.cm-html-widget figcaption': {
+    fontSize: '0.9em',
+    color: 'var(--text-secondary)',
+    marginTop: '0.5em',
+  },
 });
 
 // Syntax highlighting to apply classes (using CSS classes for dark mode compatibility)
@@ -347,6 +505,7 @@ export const markdownHighlighting = HighlightStyle.define([
   { tag: t.heading3, class: 'cm-header-3' },
   { tag: t.strong, fontWeight: 'bold' },
   { tag: t.emphasis, fontStyle: 'italic' },
+  { tag: t.strikethrough, textDecoration: 'line-through' },
   { tag: t.monospace, class: 'cm-inline-code' },
   { tag: t.quote, class: 'cm-blockquote' },
   { tag: t.link, class: 'cm-link' },

@@ -1,6 +1,65 @@
 import { WidgetType } from '@codemirror/view';
 import { getInitialLanguage, translations } from '../lib/i18n';
 
+// Parse inline content in table cells - handle both HTML tags and Markdown syntax
+function parseTableCellContent(text: string): string {
+    // First, escape all HTML to prevent XSS
+    let result = text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+    // Then, selectively unescape safe inline HTML tags
+    // <br> and <br/> and <br />
+    result = result.replace(/&lt;br\s*\/?&gt;/gi, '<br>');
+
+    // <b>...</b> and <strong>...</strong>
+    result = result.replace(/&lt;(b|strong)&gt;/gi, '<$1>');
+    result = result.replace(/&lt;\/(b|strong)&gt;/gi, '</$1>');
+
+    // <i>...</i> and <em>...</em>
+    result = result.replace(/&lt;(i|em)&gt;/gi, '<$1>');
+    result = result.replace(/&lt;\/(i|em)&gt;/gi, '</$1>');
+
+    // <u>...</u>
+    result = result.replace(/&lt;u&gt;/gi, '<u>');
+    result = result.replace(/&lt;\/u&gt;/gi, '</u>');
+
+    // <s>...</s> and <del>...</del>
+    result = result.replace(/&lt;(s|del)&gt;/gi, '<$1>');
+    result = result.replace(/&lt;\/(s|del)&gt;/gi, '</$1>');
+
+    // <mark>...</mark>
+    result = result.replace(/&lt;mark&gt;/gi, '<mark>');
+    result = result.replace(/&lt;\/mark&gt;/gi, '</mark>');
+
+    // <code>...</code>
+    result = result.replace(/&lt;code&gt;/gi, '<code>');
+    result = result.replace(/&lt;\/code&gt;/gi, '</code>');
+
+    // <sub>...</sub> and <sup>...</sup>
+    result = result.replace(/&lt;(sub|sup)&gt;/gi, '<$1>');
+    result = result.replace(/&lt;\/(sub|sup)&gt;/gi, '</$1>');
+
+    // Now handle Markdown inline syntax
+    // **bold** or __bold__
+    result = result.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    result = result.replace(/__([^_]+)__/g, '<strong>$1</strong>');
+
+    // *italic* or _italic_ (but not inside words for _)
+    result = result.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+    result = result.replace(/(?<![a-zA-Z])_([^_]+)_(?![a-zA-Z])/g, '<em>$1</em>');
+
+    // ~~strikethrough~~
+    result = result.replace(/~~([^~]+)~~/g, '<del>$1</del>');
+
+    // `code`
+    result = result.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+    return result;
+}
+
+
 export interface TableData {
     headers: string[];
     rows: string[][];
@@ -58,7 +117,8 @@ export class TableWidget extends WidgetType {
 
             this.data.headers.forEach((headerText, colIndex) => {
                 const th = document.createElement('th');
-                th.textContent = headerText.trim() || ' ';
+                const trimmed = headerText.trim();
+                th.innerHTML = trimmed ? parseTableCellContent(trimmed) : ' ';
                 th.style.padding = '8px 12px';
                 th.style.border = '1px solid var(--border-color, #ddd)';
                 th.style.textAlign = this.data.alignments[colIndex] || 'left';
@@ -66,7 +126,7 @@ export class TableWidget extends WidgetType {
                 th.dataset.row = '-1'; // Header row
                 th.dataset.col = colIndex.toString();
                 // Mark empty cells
-                if (!headerText.trim()) {
+                if (!trimmed) {
                     th.style.backgroundColor = 'var(--table-empty-cell, rgba(0,0,0,0.03))';
                 }
 
@@ -88,7 +148,8 @@ export class TableWidget extends WidgetType {
 
                 row.forEach((cellText, colIndex) => {
                     const td = document.createElement('td');
-                    td.textContent = cellText.trim() || '\u00A0'; // Use non-breaking space for empty cells
+                    const trimmed = cellText.trim();
+                    td.innerHTML = trimmed ? parseTableCellContent(trimmed) : '\u00A0'; // Use non-breaking space for empty cells
                     td.style.padding = '8px 12px';
                     td.style.border = '1px solid var(--border-color, #ddd)';
                     const align = this.data.alignments[colIndex] || 'left';
@@ -97,7 +158,7 @@ export class TableWidget extends WidgetType {
                     td.dataset.row = rowIndex.toString();
                     td.dataset.col = colIndex.toString();
                     // Mark empty cells
-                    if (!cellText.trim()) {
+                    if (!trimmed) {
                         td.style.backgroundColor = 'var(--table-empty-cell, rgba(0,0,0,0.03))';
                     }
 

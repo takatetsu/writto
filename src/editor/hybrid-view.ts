@@ -49,6 +49,7 @@ const editModeState = StateField.define<number | null>({
 });
 
 // Helper to check if a position is in edit mode
+// If the edit line is inside a block element (like Table), the entire block is considered in edit mode
 function isInEditMode(state: EditorState, from: number, to: number): boolean {
   const editLine = state.field(editModeState);
   if (editLine === null) return false;
@@ -56,7 +57,39 @@ function isInEditMode(state: EditorState, from: number, to: number): boolean {
   const nodeStartLine = state.doc.lineAt(from).number;
   const nodeEndLine = state.doc.lineAt(to).number;
 
-  return editLine >= nodeStartLine && editLine <= nodeEndLine;
+  // First, check if the node directly contains the edit line
+  if (editLine >= nodeStartLine && editLine <= nodeEndLine) {
+    return true;
+  }
+
+  // Next, check if the edit line is inside a block element (Table, FencedCode, etc.)
+  // and if the node is also inside that same block
+  const editLinePos = state.doc.line(editLine).from;
+
+  // Find if edit line is inside a block element
+  let blockFrom = -1;
+  let blockTo = -1;
+
+  syntaxTree(state).iterate({
+    enter: (node) => {
+      if (node.name === 'Table' || node.name === 'FencedCode' || node.name === 'CodeBlock') {
+        if (editLinePos >= node.from && editLinePos <= node.to) {
+          blockFrom = node.from;
+          blockTo = node.to;
+        }
+      }
+    }
+  });
+
+  // If edit line is inside a block, check if the current node overlaps with that block
+  if (blockFrom >= 0 && blockTo >= 0) {
+    // Check if the node (from, to) is within the block range
+    if (from >= blockFrom && to <= blockTo) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 // Double-click handler to enter edit mode
@@ -154,6 +187,263 @@ function getMimeType(path: string): string {
 
 // Import marked for markdown rendering inside details
 import { marked } from 'marked';
+
+// List of allowed HTML tags for rendering
+const ALLOWED_TAGS = new Set([
+  // Inline elements
+  'b', 'strong', 'i', 'em', 'u', 's', 'del', 'ins', 'mark', 'code', 'sub', 'sup', 'br', 'span', 'small', 'big',
+  // Block elements
+  'p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'pre', 'hr', 'ul', 'ol', 'li', 'dl', 'dt', 'dd',
+  // Table elements
+  'table', 'tr', 'td', 'th', 'thead', 'tbody', 'tfoot', 'caption', 'colgroup', 'col',
+  // Media elements
+  'img', 'a', 'figure', 'figcaption',
+  // Other safe elements
+  'abbr', 'cite', 'dfn', 'kbd', 'q', 'samp', 'var', 'time', 'address', 'article', 'aside', 'footer', 'header', 'main', 'nav', 'section',
+]);
+
+// List of allowed attributes
+const ALLOWED_ATTRS = new Set([
+  'style', 'class', 'id', 'title', 'alt', 'src', 'href', 'target', 'width', 'height',
+  'colspan', 'rowspan', 'align', 'valign', 'border', 'cellpadding', 'cellspacing',
+  'rel', 'name', 'datetime', 'lang', 'dir',
+]);
+
+// Sanitize HTML to remove dangerous elements and attributes
+function sanitizeHTML(html: string): string {
+  // Create a temporary element to parse HTML
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = html;
+
+  // Function to recursively sanitize elements
+  function sanitizeElement(element: Element): void {
+    // Get all child elements (convert to array to avoid mutation issues)
+    const children = Array.from(element.children);
+
+    for (const child of children) {
+      const tagName = child.tagName.toLowerCase();
+
+      // Remove disallowed tags completely
+      if (!ALLOWED_TAGS.has(tagName)) {
+        // For script, style, iframe etc., remove entirely
+        if (['script', 'style', 'iframe', 'frame', 'frameset', 'object', 'embed', 'applet', 'form', 'input', 'button', 'select', 'textarea', 'link', 'meta', 'base'].includes(tagName)) {
+          child.remove();
+          continue;
+        }
+        // For other unknown tags, replace with contents
+        const fragment = document.createDocumentFragment();
+        while (child.firstChild) {
+          fragment.appendChild(child.firstChild);
+        }
+        child.replaceWith(fragment);
+        continue;
+      }
+
+      // Remove disallowed attributes
+      const attrs = Array.from(child.attributes);
+      for (const attr of attrs) {
+        const attrName = attr.name.toLowerCase();
+
+        // Remove event handlers (on*)
+        if (attrName.startsWith('on')) {
+          child.removeAttribute(attr.name);
+          continue;
+        }
+
+        // Remove javascript: URLs
+        if ((attrName === 'href' || attrName === 'src') && attr.value.toLowerCase().trim().startsWith('javascript:')) {
+          child.removeAttribute(attr.name);
+          continue;
+        }
+
+        // Remove data: URLs for security (except for images)
+        if (attrName === 'src' && attr.value.toLowerCase().trim().startsWith('data:') && tagName !== 'img') {
+          child.removeAttribute(attr.name);
+          continue;
+        }
+
+        // Remove disallowed attributes
+        if (!ALLOWED_ATTRS.has(attrName) && !attrName.startsWith('data-')) {
+          child.removeAttribute(attr.name);
+        }
+      }
+
+      // Recursively sanitize children
+      sanitizeElement(child);
+    }
+  }
+
+  sanitizeElement(tempDiv);
+  return tempDiv.innerHTML;
+}
+
+// Widget for rendering HTML content
+class HTMLWidget extends WidgetType {
+  constructor(readonly htmlContent: string) {
+    super();
+  }
+
+  eq(other: HTMLWidget) {
+    return other.htmlContent === this.htmlContent;
+  }
+
+  toDOM() {
+    const container = document.createElement('div');
+    container.className = 'cm-html-widget';
+
+    // Sanitize and render HTML
+    let sanitizedHTML = sanitizeHTML(this.htmlContent);
+
+    // Remove whitespace between tags to prevent extra spacing in lists
+    // This removes newlines, spaces, and tabs between > and <
+    sanitizedHTML = sanitizedHTML.replace(/>\s+</g, '><');
+
+    container.innerHTML = sanitizedHTML;
+
+    // Handle links - make them open in external browser with Ctrl+click
+    const links = container.querySelectorAll('a[href]');
+    links.forEach((link) => {
+      const anchor = link as HTMLAnchorElement;
+      const href = anchor.getAttribute('href') || '';
+
+      anchor.addEventListener('click', async (e) => {
+        if (e.ctrlKey || e.metaKey) {
+          e.preventDefault();
+          e.stopPropagation();
+          if (href && !href.startsWith('#')) {
+            try {
+              await shellOpen(href);
+            } catch (err) {
+              console.error('[HTMLWidget] Failed to open URL:', err);
+            }
+          }
+        }
+      });
+
+      // Show hint on hover
+      const isJapanese = navigator.language.startsWith('ja') || localStorage.getItem('language') === 'ja';
+      anchor.title = isJapanese ? 'Ctrl+クリックでリンク先へ移動' : 'Ctrl+Click to follow link';
+    });
+
+    // Handle images with local paths
+    const images = container.querySelectorAll('img[src]');
+    images.forEach((img) => {
+      const imgElement = img as HTMLImageElement;
+      const src = imgElement.getAttribute('src') || '';
+
+      // If it's a local path, try to load it
+      if (!src.startsWith('http://') && !src.startsWith('https://') && !src.startsWith('data:')) {
+        this.loadLocalImage(src, imgElement);
+      }
+
+      // Add max-width to prevent overflow
+      imgElement.style.maxWidth = '100%';
+    });
+
+    return container;
+  }
+
+  private async loadLocalImage(path: string, img: HTMLImageElement) {
+    try {
+      const data = await readFile(path);
+      const mimeType = getMimeType(path);
+      const blob = new Blob([data], { type: mimeType });
+      const blobUrl = URL.createObjectURL(blob);
+      img.src = blobUrl;
+    } catch (e) {
+      console.error('[HTMLWidget] Failed to load image:', path, e);
+      img.alt = `${img.alt || 'Image'} (読み込みエラー)`;
+    }
+  }
+
+  // Allow clicks on content to trigger edit mode
+  ignoreEvent(event: Event): boolean {
+    // Ignore Ctrl+click on links
+    if (event instanceof MouseEvent && (event.ctrlKey || event.metaKey)) {
+      const target = event.target as HTMLElement;
+      if (target.tagName === 'A' || target.closest('a')) {
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
+// More comprehensive function to find HTML content (multi-line)
+// Handles nested tags properly by finding the matching closing tag
+function findHTMLBlocks(text: string): { from: number; to: number; content: string }[] {
+  const blocks: { from: number; to: number; content: string }[] = [];
+
+  // Tags that typically contain block content
+  const blockTags = ['div', 'p', 'table', 'ul', 'ol', 'blockquote', 'pre', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'dl', 'figure', 'article', 'aside', 'section', 'header', 'footer', 'main', 'nav', 'address'];
+
+  // Find opening tags and their matching closing tags
+  for (const tag of blockTags) {
+    const openTagRegex = new RegExp(`<${tag}\\b[^>]*>`, 'gi');
+    let openMatch;
+
+    while ((openMatch = openTagRegex.exec(text)) !== null) {
+      const startPos = openMatch.index;
+
+      // Find the matching closing tag by counting nested tags
+      let depth = 1;
+      let pos = startPos + openMatch[0].length;
+      const closeTagRegex = new RegExp(`<(/?)(${tag})\\b[^>]*>`, 'gi');
+      closeTagRegex.lastIndex = pos;
+
+      let closeMatch;
+      while ((closeMatch = closeTagRegex.exec(text)) !== null) {
+        if (closeMatch[1] === '/') {
+          // Closing tag
+          depth--;
+          if (depth === 0) {
+            const endPos = closeMatch.index + closeMatch[0].length;
+            const content = text.substring(startPos, endPos);
+
+            // Check if this block overlaps with any existing block
+            const overlaps = blocks.some(b =>
+              (startPos >= b.from && startPos < b.to) ||
+              (endPos > b.from && endPos <= b.to) ||
+              (startPos <= b.from && endPos >= b.to)
+            );
+
+            if (!overlaps) {
+              blocks.push({
+                from: startPos,
+                to: endPos,
+                content: content
+              });
+            }
+            break;
+          }
+        } else {
+          // Opening tag of same type
+          depth++;
+        }
+      }
+    }
+  }
+
+  // Also find self-closing tags like <hr />, <br />, and <img ... />
+  const selfClosingRegex = /<(hr|br|img)\b[^>]*\/?>/gi;
+  let match;
+  while ((match = selfClosingRegex.exec(text)) !== null) {
+    // Check if this position overlaps with any existing block
+    const overlaps = blocks.some(b => match!.index >= b.from && match!.index < b.to);
+    if (!overlaps) {
+      blocks.push({
+        from: match.index,
+        to: match.index + match[0].length,
+        content: match[0]
+      });
+    }
+  }
+
+  // Sort by position
+  blocks.sort((a, b) => a.from - b.from);
+
+  return blocks;
+}
 
 // Widget for HTML <details> tag - renders collapsible sections
 class DetailsWidget extends WidgetType {
@@ -977,6 +1267,18 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
           }
         } while (c.nextSibling());
       }
+      // Handle GFM Strikethrough (~~text~~)
+      else if (node.name === 'Strikethrough') {
+        if (isInEditMode(state, node.from, node.to)) return;
+
+        let c = node.node.cursor();
+        c.firstChild();
+        do {
+          if (c.name === 'StrikethroughMark') {
+            decorations.push(Decoration.replace({}).range(c.from, c.to));
+          }
+        } while (c.nextSibling());
+      }
       else if (node.name.startsWith('ATXHeading')) {
         if (isInEditMode(state, node.from, node.to)) return;
 
@@ -1308,6 +1610,53 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
     decorations.push(Decoration.replace({
       widget: new DetailsWidget(summaryText, contentText)
     }).range(from, to));
+  }
+
+  // Detect and render general HTML blocks (not part of markdown syntax tree)
+  // Skip if already handled by <details> or inside code blocks
+  const htmlBlocks = findHTMLBlocks(docText);
+
+  // Get ranges that are already decorated (details, code blocks, etc.)
+  const decoratedRanges: { from: number; to: number }[] = [];
+
+  // Add details ranges
+  detailsRegex.lastIndex = 0;
+  while ((match = detailsRegex.exec(docText)) !== null) {
+    decoratedRanges.push({ from: match.index, to: match.index + match[0].length });
+  }
+
+  // Add code block ranges from syntax tree
+  syntaxTree(state).iterate({
+    enter: (node) => {
+      if (node.name === 'FencedCode' || node.name === 'CodeBlock' || node.name === 'InlineCode') {
+        decoratedRanges.push({ from: node.from, to: node.to });
+      }
+      // Also add Table ranges to prevent HTML inside tables from being replaced
+      if (node.name === 'Table') {
+        decoratedRanges.push({ from: node.from, to: node.to });
+      }
+    }
+  });
+
+  for (const block of htmlBlocks) {
+    // Skip if in edit mode
+    if (isInEditMode(state, block.from, block.to)) continue;
+
+    // Skip if overlaps with already decorated ranges
+    const overlaps = decoratedRanges.some(r =>
+      (block.from >= r.from && block.from < r.to) ||
+      (block.to > r.from && block.to <= r.to) ||
+      (block.from <= r.from && block.to >= r.to)
+    );
+    if (overlaps) continue;
+
+    // Skip if it looks like Markdown table (pipes at start/end of lines)
+    const content = block.content.trim();
+    if (content.startsWith('|') && content.includes('\n')) continue;
+
+    decorations.push(Decoration.replace({
+      widget: new HTMLWidget(block.content)
+    }).range(block.from, block.to));
   }
 
   // Sort decorations by from position and return as RangeSet
