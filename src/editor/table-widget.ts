@@ -107,7 +107,7 @@ export class TableWidget extends WidgetType {
             table.className = 'cm-md-table';
             table.style.borderCollapse = 'collapse';
             table.style.width = '100%';
-            table.style.marginBottom = '1em';
+            table.style.margin = '0.5em 0';
             table.style.border = '1px solid var(--border-color, #ddd)';
 
             // Header

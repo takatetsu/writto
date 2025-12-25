@@ -1468,8 +1468,31 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
         }
       }
       else if (node.name === 'Table') {
-        // Skip if in edit mode
-        if (isInEditMode(state, node.from, node.to)) return;
+        // Calculate the actual table end position by finding the last line that starts with |
+        // Lezer parser sometimes includes non-table lines in the table node
+        const tableStartLine = state.doc.lineAt(node.from);
+        let actualTableEnd = node.to;
+
+        // Scan through lines to find the last line that starts with |
+        for (let lineNum = tableStartLine.number; lineNum <= state.doc.lines; lineNum++) {
+          const line = state.doc.line(lineNum);
+          if (line.from > node.to) break; // Don't go beyond original node end
+
+          const trimmedLine = line.text.trim();
+          if (trimmedLine.startsWith('|') || trimmedLine.match(/^[\s]*[-:|]+[\s]*$/)) {
+            // This is a table row (starts with |) or a delimiter row (like |---|---|)
+            actualTableEnd = line.to;
+          } else if (trimmedLine === '') {
+            // Empty line could be okay, continue
+            continue;
+          } else {
+            // Non-table content - stop here
+            break;
+          }
+        }
+
+        // Skip if in edit mode (use actual table end)
+        if (isInEditMode(state, node.from, actualTableEnd)) return;
 
         // Parse the table data
         const tableData: TableData = {
@@ -1477,7 +1500,7 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
           rows: [],
           alignments: [],
           from: node.from,
-          to: node.to
+          to: actualTableEnd
         };
 
         let cursor = node.node.cursor();
@@ -1521,10 +1544,18 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
           child = node.node.firstChild;
           while (child) {
             if (child.name === 'TableRow') {
+              // Skip rows beyond the actual table end
+              if (child.from > actualTableEnd) {
+                child = child.nextSibling;
+                continue;
+              }
               // Parse row text manually to capture empty cells that Lezer doesn't recognize
-              const rowText = state.sliceDoc(child.from, child.to);
-              const row = parseTableRow(rowText);
-              tableData.rows.push(row);
+              const rowText = state.sliceDoc(child.from, Math.min(child.to, actualTableEnd));
+              // Only include lines that start with |
+              if (rowText.trim().startsWith('|')) {
+                const row = parseTableRow(rowText);
+                tableData.rows.push(row);
+              }
             }
             child = child.nextSibling;
           }
@@ -1542,7 +1573,7 @@ function computeHybridDecorations(state: EditorState): DecorationSet {
         try {
           decorations.push(Decoration.replace({
             widget: new TableWidget(tableData)
-          }).range(node.from, node.to));
+          }).range(node.from, actualTableEnd));
         } catch (e) {
           console.error('Failed to add table decoration:', e);
         }

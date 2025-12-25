@@ -97,7 +97,7 @@ export const baseTheme = EditorView.theme({
   '.cm-hr': { borderTop: '2px solid var(--border-color)', margin: '1em 0', display: 'block', lineHeight: '1px', fontSize: '1px' },
 
   // Table
-  '.cm-table': { borderCollapse: 'collapse', width: '100%', marginBottom: '1em' },
+  '.cm-table': { borderCollapse: 'collapse', width: '100%', margin: '0.5em 0' },
   '.cm-table-head': { fontWeight: 'bold', borderBottom: '2px solid var(--border-color)', backgroundColor: 'var(--bg-secondary)' },
   '.cm-table-row': { borderBottom: '1px solid var(--border-light)' },
   '.cm-table-cell': { padding: '8px', border: '1px solid var(--border-color)' },
