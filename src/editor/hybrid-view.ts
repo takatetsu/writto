@@ -169,6 +169,37 @@ const editModeKeymap = Prec.high(keymap.of([
   }
 ]));
 
+// Handler to auto-enter edit mode on any printable character input
+const autoEditModeOnInput = EditorView.domEventHandlers({
+  keydown: (event, view) => {
+    // Skip if already in edit mode
+    const currentEditLine = view.state.field(editModeState);
+    if (currentEditLine !== null) return false;
+
+    // Skip modifier keys and special keys
+    if (event.ctrlKey || event.metaKey || event.altKey) return false;
+
+    // Skip non-printable keys
+    const nonPrintableKeys = [
+      'Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'Tab',
+      'Escape', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+      'Home', 'End', 'PageUp', 'PageDown', 'Insert', 'Delete',
+      'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12',
+      'PrintScreen', 'ScrollLock', 'Pause', 'NumLock', 'ContextMenu'
+    ];
+    if (nonPrintableKeys.includes(event.key)) return false;
+
+    // Enter edit mode on current cursor line
+    const cursorLine = view.state.doc.lineAt(view.state.selection.main.head).number;
+    view.dispatch({
+      effects: setEditModeLine.of(cursorLine)
+    });
+
+    // Let the key event proceed normally
+    return false;
+  }
+});
+
 // Helper function to get MIME type from file extension
 function getMimeType(path: string): string {
   const ext = path.toLowerCase().split('.').pop() || '';
@@ -1683,5 +1714,9 @@ export const hybridView = [
   editModeState,
   editModeClickHandler,
   editModeKeymap,
+  autoEditModeOnInput,
   hybridViewField
 ];
+
+// Export editModeState for external access
+export { editModeState };

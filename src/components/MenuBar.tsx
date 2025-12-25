@@ -18,13 +18,14 @@ interface MenuBarProps {
     onToggleSidebar: () => void;
     darkMode: boolean;
     onToggleDarkMode: () => void;
+    onUsageGuide: () => void;
     onAbout: () => void;
     onCheckForUpdates: () => void;
     onExit: () => void;
 }
 
 const MenuBar: React.FC<MenuBarProps> = ({
-    onNew, onOpen, onSave, onSaveAs, onExportHtml, onPrint, onSettings, onFind, showLineNumbers, onToggleLineNumbers, wordWrap, onToggleWordWrap, showSidebar, onToggleSidebar, darkMode, onToggleDarkMode, onAbout, onCheckForUpdates, onExit
+    onNew, onOpen, onSave, onSaveAs, onExportHtml, onPrint, onSettings, onFind, showLineNumbers, onToggleLineNumbers, wordWrap, onToggleWordWrap, showSidebar, onToggleSidebar, darkMode, onToggleDarkMode, onUsageGuide, onAbout, onCheckForUpdates, onExit
 }) => {
     const { t } = useTranslation();
     const [activeMenu, setActiveMenu] = useState<string | null>(null);
@@ -115,6 +116,8 @@ const MenuBar: React.FC<MenuBarProps> = ({
                 </div>
                 {activeMenu === 'help' && (
                     <div className="dropdown-menu">
+                        <div className="dropdown-item" onClick={() => handleItemClick(onUsageGuide)}>{t('menu.usageGuide')} <span className="shortcut">F1</span></div>
+                        <div className="dropdown-divider"></div>
                         <div className="dropdown-item" onClick={() => handleItemClick(onCheckForUpdates)}>{t('menu.checkUpdates')}</div>
                         <div className="dropdown-divider"></div>
                         <div className="dropdown-item" onClick={() => handleItemClick(onAbout)}>{t('menu.about')}</div>

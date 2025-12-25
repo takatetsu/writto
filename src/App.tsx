@@ -13,6 +13,8 @@ import './App.css';
 
 import MenuBar from './components/MenuBar';
 import AboutModal from './components/AboutModal';
+import HelpModal from './components/HelpModal';
+import StatusBar from './components/StatusBar';
 import { I18nProvider } from './contexts/I18nContext';
 
 function App() {
@@ -39,6 +41,9 @@ function App() {
     return saved === 'true';
   });
   const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [cursorPosition, setCursorPosition] = useState({ line: 1, column: 1 });
   const editorRef = useRef<EditorHandle>(null);
   const isLoading = useRef(false);
 
@@ -218,6 +223,10 @@ function App() {
     setIsAboutOpen(true);
   };
 
+  const handleUsageGuide = () => {
+    setIsHelpOpen(true);
+  };
+
   const handleSaveSettings = (newSettings: { fontSize: number; fontFamily: string; defaultFolderMode: 'none' | 'specific' | 'last'; defaultFolderPath: string; editorWidth: number }) => {
     console.log('Saving settings:', newSettings);
     setSettings(newSettings);
@@ -367,6 +376,18 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown, true);
   }, [doc, filePath, isDirty, showLineNumbers, wordWrap]);
 
+  // F1 shortcut for help
+  useEffect(() => {
+    const handleF1 = (e: KeyboardEvent) => {
+      if (e.key === 'F1') {
+        e.preventDefault();
+        setIsHelpOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleF1);
+    return () => window.removeEventListener('keydown', handleF1);
+  }, []);
+
   return (
     <div className={`app-container ${darkMode ? 'dark-mode' : ''}`}>
       <SettingsModal
@@ -378,6 +399,11 @@ function App() {
       <AboutModal
         isOpen={isAboutOpen}
         onClose={() => setIsAboutOpen(false)}
+        darkMode={darkMode}
+      />
+      <HelpModal
+        isOpen={isHelpOpen}
+        onClose={() => setIsHelpOpen(false)}
         darkMode={darkMode}
       />
       <div id="print-container" dangerouslySetInnerHTML={{ __html: printContent }} />
@@ -399,6 +425,7 @@ function App() {
           onToggleSidebar={handleToggleSidebar}
           darkMode={darkMode}
           onToggleDarkMode={handleToggleDarkMode}
+          onUsageGuide={handleUsageGuide}
           onAbout={handleAbout}
           onCheckForUpdates={handleCheckForUpdates}
           onExit={close}
@@ -432,6 +459,14 @@ function App() {
             wordWrap={wordWrap}
             activeFileDir={activeFileDir || initialFolder}
             isPlainText={isPlainText}
+            onEditModeChange={setIsEditMode}
+            onCursorChange={setCursorPosition}
+          />
+          <StatusBar
+            darkMode={darkMode}
+            isEditMode={isEditMode}
+            cursorLine={cursorPosition.line}
+            cursorColumn={cursorPosition.column}
           />
         </div>
       </div>

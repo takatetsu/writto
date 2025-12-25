@@ -9,7 +9,7 @@ import { languages } from "@codemirror/language-data";
 import { openSearchPanel, searchKeymap, highlightSelectionMatches } from "@codemirror/search";
 import { foldGutter, indentOnInput, syntaxHighlighting, defaultHighlightStyle, bracketMatching, foldKeymap } from "@codemirror/language";
 import { closeBrackets, closeBracketsKeymap, autocompletion, completionKeymap } from "@codemirror/autocomplete";
-import { hybridView, baseDirFacet } from '../editor/hybrid-view';
+import { hybridView, baseDirFacet, editModeState } from '../editor/hybrid-view';
 import { themeExtensions } from '../editor/theme';
 import { checkboxPlugin } from '../editor/checkbox-plugin';
 import { excelPasteHandler } from '../editor/paste-handler';
@@ -29,9 +29,11 @@ interface EditorProps {
   wordWrap?: boolean;
   activeFileDir?: string;
   isPlainText?: boolean;
+  onEditModeChange?: (isEditMode: boolean) => void;
+  onCursorChange?: (position: { line: number; column: number }) => void;
 }
 
-const Editor = forwardRef<EditorHandle, EditorProps>(({ initialDoc = "", onChange, settings, showLineNumbers = true, wordWrap = false, activeFileDir, isPlainText = false }, ref) => {
+const Editor = forwardRef<EditorHandle, EditorProps>(({ initialDoc = "", onChange, settings, showLineNumbers = true, wordWrap = false, activeFileDir, isPlainText = false, onEditModeChange, onCursorChange }, ref) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const themeCompartment = useRef(new Compartment());
@@ -284,6 +286,24 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ initialDoc = "", onChang
         EditorView.updateListener.of((update) => {
           if (update.docChanged && onChange) {
             onChange(update.state.doc.toString());
+          }
+          // Report cursor position changes
+          if (update.selectionSet && onCursorChange) {
+            const pos = update.state.selection.main.head;
+            const line = update.state.doc.lineAt(pos);
+            onCursorChange({
+              line: line.number,
+              column: pos - line.from + 1
+            });
+          }
+          // Report edit mode changes (only for markdown files)
+          if (!isPlainText && onEditModeChange) {
+            try {
+              const editLine = update.state.field(editModeState);
+              onEditModeChange(editLine !== null);
+            } catch {
+              // Field not available, ignore
+            }
           }
         }),
         themeExtensions,
