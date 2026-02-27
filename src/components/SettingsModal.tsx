@@ -13,8 +13,9 @@ interface SettingsModalProps {
         defaultFolderMode: 'none' | 'specific' | 'last';
         defaultFolderPath: string;
         editorWidth: number;
+        lineHeight: number;
     };
-    onSave: (settings: { fontSize: number; fontFamily: string; defaultFolderMode: 'none' | 'specific' | 'last'; defaultFolderPath: string; editorWidth: number }) => void;
+    onSave: (settings: { fontSize: number; fontFamily: string; defaultFolderMode: 'none' | 'specific' | 'last'; defaultFolderPath: string; editorWidth: number; lineHeight: number }) => void;
 }
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings, onSave }) => {
@@ -24,6 +25,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
     const [defaultFolderMode, setDefaultFolderMode] = useState<'none' | 'specific' | 'last'>(settings.defaultFolderMode);
     const [defaultFolderPath, setDefaultFolderPath] = useState(settings.defaultFolderPath);
     const [editorWidth, setEditorWidth] = useState(settings.editorWidth);
+    const [lineHeight, setLineHeight] = useState(settings.lineHeight);
     const [selectedLanguage, setSelectedLanguage] = useState<Language>(language);
     const [availableFonts, setAvailableFonts] = useState<string[]>([]);
     const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -80,6 +82,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
             setFontSize(settings.fontSize);
             setFontFamily(settings.fontFamily);
             setEditorWidth(settings.editorWidth);
+            setLineHeight(settings.lineHeight);
             setDefaultFolderMode(settings.defaultFolderMode);
             setDefaultFolderPath(settings.defaultFolderPath);
             setSelectedLanguage(language);
@@ -100,7 +103,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
         if (selectedLanguage !== language) {
             setLanguage(selectedLanguage);
         }
-        onSave({ fontSize, fontFamily, defaultFolderMode, defaultFolderPath, editorWidth });
+        onSave({ fontSize, fontFamily, defaultFolderMode, defaultFolderPath, editorWidth, lineHeight });
         onClose();
     };
 
@@ -224,6 +227,23 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
                                 style={{ flex: 1 }}
                             />
                             <span style={{ minWidth: '50px', textAlign: 'right' }}>{editorWidth}%</span>
+                        </div>
+                    </div>
+
+                    {/* Line Height */}
+                    <div style={{ marginBottom: '20px' }}>
+                        <h3 style={{ margin: '0 0 12px 0', fontSize: '1em', fontWeight: 'bold', color: 'var(--text-primary)' }}>{t('settings.lineHeight')}</h3>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                            <input
+                                type="range"
+                                min="1.0"
+                                max="3.0"
+                                step="0.1"
+                                value={lineHeight}
+                                onChange={(e) => setLineHeight(Number(e.target.value))}
+                                style={{ flex: 1 }}
+                            />
+                            <span style={{ minWidth: '50px', textAlign: 'right' }}>{lineHeight.toFixed(1)}</span>
                         </div>
                     </div>
 

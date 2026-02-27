@@ -24,7 +24,7 @@ export interface EditorHandle {
 interface EditorProps {
   initialDoc?: string;
   onChange?: (doc: string) => void;
-  settings?: { fontSize: number; fontFamily: string; editorWidth?: number };
+  settings?: { fontSize: number; fontFamily: string; editorWidth?: number; lineHeight?: number };
   showLineNumbers?: boolean;
   wordWrap?: boolean;
   activeFileDir?: string;
@@ -324,11 +324,13 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ initialDoc = "", onChang
             margin: "0 auto",
             padding: (settings?.editorWidth || 100) === 100 ? "20px 0" : "20px 40px",
             fontSize: `${settings?.fontSize || 14}px !important`,
-            fontFamily: `${settings?.fontFamily || 'Consolas, monospace'} !important`
+            fontFamily: `${settings?.fontFamily || 'Consolas, monospace'} !important`,
+            lineHeight: `${settings?.lineHeight || 1.5}`
           },
           ".cm-line": {
             fontSize: `${settings?.fontSize || 14}px !important`,
-            fontFamily: `${settings?.fontFamily || 'Consolas, monospace'} !important`
+            fontFamily: `${settings?.fontFamily || 'Consolas, monospace'} !important`,
+            lineHeight: `${settings?.lineHeight || 1.5}`
           }
         })),
         // Only enable hybrid markdown rendering for markdown files
@@ -422,16 +424,18 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ initialDoc = "", onChang
             margin: "0 auto",
             padding: (settings.editorWidth || 100) === 100 ? "20px 0" : "20px 40px",
             fontSize: `${settings.fontSize}px !important`,
-            fontFamily: `${settings.fontFamily} !important`
+            fontFamily: `${settings.fontFamily} !important`,
+            lineHeight: `${settings.lineHeight || 1.5}`
           },
           ".cm-line": {
             fontSize: `${settings.fontSize}px !important`,
-            fontFamily: `${settings.fontFamily} !important`
+            fontFamily: `${settings.fontFamily} !important`,
+            lineHeight: `${settings.lineHeight || 1.5}`
           }
         }))
       });
     }
-  }, [settings?.fontSize, settings?.fontFamily, settings?.editorWidth]);
+  }, [settings?.fontSize, settings?.fontFamily, settings?.editorWidth, settings?.lineHeight]);
 
   // Update line numbers
   useEffect(() => {

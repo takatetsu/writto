@@ -28,7 +28,8 @@ function App() {
     fontFamily: 'Consolas, monospace',
     defaultFolderMode: 'none' as 'none' | 'specific' | 'last',
     defaultFolderPath: '',
-    editorWidth: 100
+    editorWidth: 100,
+    lineHeight: 1.5
   });
   const [showLineNumbers, setShowLineNumbers] = useState(true);
   const [wordWrap, setWordWrap] = useState(() => {
@@ -227,7 +228,7 @@ function App() {
     setIsHelpOpen(true);
   };
 
-  const handleSaveSettings = (newSettings: { fontSize: number; fontFamily: string; defaultFolderMode: 'none' | 'specific' | 'last'; defaultFolderPath: string; editorWidth: number }) => {
+  const handleSaveSettings = (newSettings: { fontSize: number; fontFamily: string; defaultFolderMode: 'none' | 'specific' | 'last'; defaultFolderPath: string; editorWidth: number; lineHeight: number }) => {
     console.log('Saving settings:', newSettings);
     setSettings(newSettings);
     localStorage.setItem('editorSettings', JSON.stringify(newSettings));
@@ -259,7 +260,8 @@ function App() {
           fontFamily: parsedSettings.fontFamily || 'Consolas, monospace',
           defaultFolderMode: parsedSettings.defaultFolderMode || 'none',
           defaultFolderPath: parsedSettings.defaultFolderPath || '',
-          editorWidth: parsedSettings.editorWidth || 100
+          editorWidth: parsedSettings.editorWidth || 100,
+          lineHeight: parsedSettings.lineHeight || 1.5
         });
 
         // Determine which folder to open on startup
